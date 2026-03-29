@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EggMaster Wholesale</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #stealth-admin-trigger {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 20px; background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%; z-index: 10000; cursor: pointer;
+        }
+        /* Trick to show Ksh 0 when JS hides the container */
+        #emptyWalletDisplay { display: none; }
+        #walletContainer[style*="none"] ~ #emptyWalletDisplay { display: block; }
+    </style>
+    <script type="module" src="script.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="not-logged-in">
+
+    <div id="login-overlay" class="login-screen">
+        <div class="login-blobs">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+        </div>
+        <div class="login-content">
+            <div class="logo-anim">
+                <i class="fa-solid fa-egg"></i>
+                <div class="yolk-glow"></div>
+            </div>
+            <h1>EggMaster<span class="dot">.</span></h1>
+            <p>Wholesale Supply (Min 30 Trays)</p>
+            <div class="login-actions">
+                <button id="google-login-btn" class="google-btn">
+                    <i class="fa-brands fa-google"></i> Login with Google
+                </button>
+            </div>
+            <div id="stealth-admin-trigger" onclick="window.location.href='admin.html'"></div>
+        </div>
+    </div>
+
+    <div id="mpesa-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 350px;">
+        <h3 style="margin-bottom: 10px;">Confirm Payments</h3>
+        
+        <div class="payment-summary" style="background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee;">
+            <p style="font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Order Summary</p>
+            <div class="pay-row"><span>Number of Trays:</span> <strong id="summaryQty">30</strong></div>
+            <div class="pay-row"><span>Price per Tray:</span> <strong>Ksh <span id="summaryUnitPrice">400</span></strong></div>
+            <div id="summaryWalletRow" class="pay-row wallet-deduction" style="display:none;"><span>Wallet Discount:</span> <strong>-Ksh <span id="summaryWallet">0</span></strong></div>
+            <div class="pay-row total"><span>Total Amount:</span> <strong style="color: #D32F2F;">Ksh <span id="summaryTotal">12,000</span></strong></div>
+        </div>
+
+        <div style="background: #FFF8E1; border: 1px dashed #FFB300; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+            <p style="font-weight: bold; color: #FF8F00; margin-bottom: 10px;"><i class="fa-solid fa-circle-info"></i> How To Pay</p>
+            <p style="font-size: 12px; margin-bottom: 8px;">1. Open M-PESA > Withdraw Cash > From Agent</p>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 8px;">
+                <span style="font-size: 13px;">Agent No: <strong>7172200</strong></span>
+                <button onclick="window.copyToClipboard('7172200', this)" style="background: #FFB300; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer;">COPY</button>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 8px;">
+                <span style="font-size: 13px;">Store No: <strong>386997</strong></span>
+                <button onclick="window.copyToClipboard('386997', this)" style="background: #FFB300; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer;">COPY</button>
+            </div>
+
+            <p style="font-size: 13px;">Enter amount: <strong id="amountToPayInstruction">Ksh 12,000</strong></p>
+        </div>
+
+        <div class="input-group">
+            <label style="font-weight: bold;">Validate Payment</label>
+            <input type="text" id="mpesaCodeInput" placeholder="ENTER TRANSACTION CODE" style="text-transform:uppercase; text-align:center; font-weight:bold; letter-spacing: 2px;">
+            <small style="color: #666; font-size: 10px;">Enter the code (e.g. SBM8...) received in your SMS.</small>
+        </div>
+
+        <button id="payBtn" class="save-btn" style="width:100%; background:#4CAF50; color:white; padding: 15px; font-size: 16px;" onclick="window.verifyPayment()">
+            Verify Payment
+        </button>
+        <button class="cancel-btn" style="width:100%; margin-top:10px; border: none; background: transparent; color: #F44336;" onclick="document.getElementById('mpesa-modal').style.display='none'">Cancel</button>
+    </div>
+    </div>
+
+    
+       <div id="topup-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 350px;">
+            <h3 style="margin-bottom: 10px;">Top Up Wallet</h3>
+            
+            <div style="background: #E8F5E9; border: 1px dashed #4CAF50; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                <p style="font-weight: bold; color: #2E7D32; margin-bottom: 10px;"><i class="fa-solid fa-wallet"></i> How To Top Up</p>
+                <p style="font-size: 12px; margin-bottom: 8px;">Send any amount via M-PESA to our agent:</p>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 8px;">
+                    <span style="font-size: 13px;">Agent No: <strong>7172200</strong></span>
+                    <button onclick="window.copyToClipboard('7172200', this)" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer;">COPY</button>
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 8px;">
+                    <span style="font-size: 13px;">Store No: <strong>386997</strong></span>
+                    <button onclick="window.copyToClipboard('386997', this)" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer;">COPY</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label style="font-weight: bold;">Enter M-Pesa Code</label>
+                <input type="text" id="topupCodeInput" placeholder="ENTER TRANSACTION CODE" style="text-transform:uppercase; text-align:center; font-weight:bold; letter-spacing: 2px;">
+                <small style="color: #666; font-size: 10px;">Enter the code (e.g. SBM8...) you received.</small>
+            </div>
+
+            <button id="topupBtn" class="save-btn" style="width:100%; background:#4CAF50; color:white; padding: 15px; font-size: 16px;" onclick="window.processTopUp()">
+                Verify & Add Funds
+            </button>
+            <button class="cancel-btn" style="width:100%; margin-top:10px; border: none; background: transparent; color: #F44336;" onclick="document.getElementById('topup-modal').style.display='none'">Cancel</button>
+        </div>
+    </div>
+
+
+    
+
+        <div id="profile-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Edit Profile</h3>
+            
+            <div class="input-group">
+                <label>Profile ID (Unique)</label>
+                <input type="text" id="editIdInput" readonly style="background-color: #f0f0f0; color: #888; cursor: not-allowed;" title="Your unique account ID cannot be changed.">
+            </div>
+
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" id="editNameInput" placeholder="Enter your name">
+            </div>
+
+            <div class="input-group">
+                <label>Phone Number</label>
+                <input type="tel" id="editPhoneInput" placeholder="e.g., 0712345678" maxlength="10">
+                <small style="color: #D32F2F; font-size: 11px; font-weight: 600; display: block; margin-top: 5px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Warning: Please use your active WhatsApp/Call number. This is used for your deliveries!
+                </small>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="window.closeProfileModal()">Cancel</button>
+                <button id="saveProfileBtn" class="save-btn" onclick="window.saveProfile()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <div id="location-modal" class="modal-overlay">
+        <div class="modal-content location-content">
+            <h3>Select Delivery Location</h3>
+            <p style="font-size:12px; color:#666; margin-bottom:15px;">We deliver within Mombasa County.</p>
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="locSearch" placeholder="Search area..." onkeyup="window.filterLocations()">
+            </div>
+            <div id="locationList" class="location-list"></div>
+            <button class="cancel-btn" style="width:100%; margin-top:10px;" onclick="document.getElementById('location-modal').style.display='none'">Close</button>
+        </div>
+    </div>
+
+    <header class="top-bar">
+        <div class="user-info">
+            <small id="welcome-text">Good Morning,</small>
+            <h3 id="usernameDisplay">Egg Wholesaler</h3>
+        </div>
+        <div class="header-actions">
+            <div class="icon-btn" onclick="window.showPage('notifications-page', null)">
+                <i class="fa-regular fa-bell"></i>
+                <div id="notifBadge" class="dot-badge" style="display:none;"></div>
+            </div>
+            <div class="profile-pic">
+                <img src="https://ui-avatars.com/api/?name=User&background=FFB300&color=fff" id="userPhoto" alt="User">
+            </div>
+        </div>
+    </header>
+
+    <section id="home" class="page active">
+        <div class="hero-card">
+            <div class="hero-text">
+                <span class="tag">Wholesale Only</span>
+                <h2 data-i18n="heroTitle">Bulk Fresh Eggs</h2>
+                <button id="heroOrderBtn">Order Now <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <div class="hero-img">🐓</div>
+        </div>
+
+        <div class="wallet-card-home" onclick="window.openTopUpModal()" style="cursor: pointer; display: flex; flex-direction: column;">
+            <div class="wallet-label">My Wallet Balance</div>
+            
+            <div id="walletContainer" style="display: none; flex-direction: column;">
+                <div class="wallet-amount" id="walletDisplay">Ksh 0</div>
+            </div>
+            <div class="wallet-amount" id="emptyWalletDisplay">Ksh 0</div>
+            
+            <div style="margin-top: 5px;">
+                <span class="wallet-note"><i class="fa-solid fa-plus"></i> Tap to Top Up</span>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card highlight">
+                <i class="fa-solid fa-basket-shopping"></i>
+                <div>
+                    <b id="homeOrderCount">0</b>
+                    <span data-i18n="statOrders">My Orders</span>
+                </div>
+            </div>
+        </div>
+        <div class="section-header">
+            <h3 data-i18n="recentActivity">Recent Activity</h3>
+        </div>
+        <div class="mini-order" id="homeRecentCard">
+            <div class="icon-box"><i class="fa-solid fa-clock"></i></div>
+            <div class="details">
+                <h4 id="recentItemName">No orders yet</h4>
+                <small id="recentStatusText">Start shopping today!</small>
+            </div>
+            <span class="price" id="recentPrice">--</span>
+        </div>
+    </section>
+
+    <section id="shop" class="page">
+        <h2 class="page-title" data-i18n="navShop">Wholesale Shop</h2>
+        <div class="product-grid" style="grid-template-columns: 1fr;"> 
+            <div class="product-card">
+                <div class="prod-img-wrapper"><div class="prod-emoji">🥚</div></div>
+                <div class="prod-details">
+                    <h3 data-i18n="prodTray">Tray of 30</h3>
+                    <div class="prod-desc">Fresh Kienyeji Eggs (Yellow Yolk)</div>
+                    <div class="price-row"><span>Ksh</span> <span id="dynamicPriceDisplay">...</span> <small style="font-size:12px; color:#666; font-weight:400">per tray</small></div>
+                   <div id="stockDisplay" style="font-size: 13px; font-weight: 600; margin-bottom: 15px; color: #666;">Loading Stock...</div>
+                    <div class="warning-box" style="background:#fff3cd; color:#856404; padding:8px; border-radius:8px; font-size:11px; margin-bottom:10px;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Minimum Order: 30 Trays
+                    </div>
+                    <div class="action-row">
+                        <div class="qty-control">
+                            <button onclick="updateQty(-1)">-</button>
+                            <span class="qty-display" id="shopQty">30</span>
+                            <button onclick="updateQty(1)">+</button>
+                        </div>
+                        <button class="add-btn" onclick="window.initiateOrder()">
+                            <i class="fa-solid fa-cart-plus"></i> Buy Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="orders" class="page">
+        <h2 class="page-title" data-i18n="myOrders">My Orders</h2>
+        <div id="ordersList" class="orders-list"></div>
+    </section>
+
+    <section id="notifications-page" class="page">
+        <h2 class="page-title">Notifications</h2>
+        <div id="fullNotifList" class="notif-page-list">
+            <p class="empty-msg">Loading notifications...</p>
+        </div>
+    </section>
+
+    <section id="settings" class="page">
+        <h2 class="page-title" data-i18n="navSettings">Settings</h2>
+        <div class="settings-section">
+            <div class="settings-header">Account</div>
+            
+            <div class="setting-item clickable" onclick="window.openProfileModal()">
+                <div class="icon-wrap color-blue"><i class="fa-solid fa-user-pen"></i></div>
+                <div class="text">Edit Profile</div>
+                <i class="fa-solid fa-chevron-right arrow"></i>
+            </div>
+            
+            <div class="setting-item clickable" onclick="window.initLocationFlow()">
+                <div class="icon-wrap color-green"><i class="fa-solid fa-location-dot"></i></div>
+                <div class="text">
+                    <div id="locationStatus">Delivery Address</div>
+                    <small id="currentCoords">Tap to set location</small>
+                </div>
+                <i class="fa-solid fa-chevron-right arrow"></i>
+            </div>
+        </div>
+        <div class="settings-section">
+            <div class="settings-header">App Preferences</div>
+            <div class="setting-item">
+                <div class="icon-wrap color-orange"><i class="fa-solid fa-moon"></i></div>
+                <div class="text" data-i18n="setTheme">Dark Mode</div>
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle" onchange="window.toggleTheme()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-item">
+                <div class="icon-wrap color-teal"><i class="fa-solid fa-globe"></i></div>
+                <div class="text" data-i18n="setLanguage">Language</div>
+                <select id="langSelect" onchange="window.changeLanguage(this.value)" class="minimal-select">
+                    <option value="en">English</option>
+                    <option value="sw">Kiswahili</option>
+                </select>
+            </div>
+        </div>
+        <button class="logout-btn" onclick="window.logoutUser()" data-i18n="logout" style="width: calc(100% - 48px); margin: 24px; padding: 15px; border-radius: 12px; border: none; background: #FFEBEE; color: #F44336; font-weight: 700;">Logout</button>
+    </section>
+
+    <a href="https://wa.me/254700000000" target="_blank" class="whatsapp-float">
+        <i class="fa-brands fa-whatsapp"></i>
+    </a>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="window.showPage('home', this)"><i class="fa-solid fa-house"></i></div>
+        <div class="nav-item" onclick="window.showPage('shop', this)"><i class="fa-solid fa-bag-shopping"></i></div>
+        <div class="nav-item" onclick="window.showPage('orders', this)"><i class="fa-solid fa-receipt"></i></div>
+        <div class="nav-item" onclick="window.showPage('settings', this)"><i class="fa-solid fa-sliders"></i></div>
+    </nav>
+
+</body>
+</html>
