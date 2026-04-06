@@ -288,7 +288,8 @@ window.processTopUp = async () => {
             }
         } catch (err) {
             clearInterval(pollLoop);
-            alert("Connection Error. Please check your internet.");
+            console.error("Firebase Error:", err);
+            alert("Error: " + err.message);
             resetBtn();
         }
     }, 3000);
@@ -459,7 +460,8 @@ window.verifyPayment = async () => {
             }
         } catch (err) {
             clearInterval(pollLoop);
-            alert("Connection Error.");
+            console.error("Firebase Error:", err);
+            alert("Error: " + err.message);
             resetBtn();
         }
     }, 3000); 
