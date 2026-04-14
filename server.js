@@ -34,15 +34,66 @@ app.get('/', (req, res) => {
 // ==========================================
 // 🔥 AUTOMATED SMS LISTENER (WEBHOOK)
 // ==========================================
-// This is where your Android App sends the SMS
 app.post('/webhook/sms', async (req, res) => {
   console.log("\n🔔 NEW SMS RECEIVED VIA WEBHOOK 🔔");
-  
-  // 1. Reply to the App instantly (so it doesn't keep retrying)
-  res.status(200).send("Message Received");
 
   try {
     const payload = req.body;
+    
+    // Extract text from MacroDroid payload
+    const messageRaw = payload.text || payload.message || JSON.stringify(payload);
+    const sender = payload.sender || "Unknown";
+    
+    // Regex for M-Pesa Code: 10 Uppercase Letters/Numbers
+    const codeRegex = /([A-Z0-9]{10})/;
+    // Regex for Amount: Finds 'Ksh' followed by numbers
+    const amountRegex = /Ksh\.?[\s]*([\d,]+\.?\d*)/i;
+    // Regex for Phone: Finds a phone number INSIDE the message text
+    const phoneRegex = /\d{10,12}/;
+
+    const codeMatch = messageRaw.match(codeRegex);
+    const amountMatch = messageRaw.match(amountRegex);
+    const phoneMatch = messageRaw.match(phoneRegex);
+
+    if (codeMatch && amountMatch) {
+      const transactionId = codeMatch[1].toUpperCase();
+      const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+      const phone = phoneMatch ? phoneMatch[0] : sender; 
+
+      console.log(`✅ VALID PAYMENT! Saving -> Code: ${transactionId} | Amount: ${amount}`);
+
+      // 6. SAVE TO DATABASE FIRST
+      await db.collection('mpesa_payments').doc(transactionId).set({
+        transactionId: transactionId,
+        amount: amount,
+        phone: phone,
+        fullMessage: messageRaw,
+        used: false,
+        method: "Auto-Forwarder",
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      console.log("💾 Saved successfully to Firestore.");
+      
+      // 7. FINALLY, send the success response back to MacroDroid!
+      // Vercel will sleep AFTER this line.
+      return res.status(200).send("Message Received and Saved");
+
+    } else {
+      console.log("❌ Could not extract Code or Amount. Check Regex.");
+      return res.status(400).send("Invalid M-Pesa format");
+    }
+
+  } catch (err) {
+    console.error("🔥 Webhook Error:", err);
+    // Send a 500 error so MacroDroid knows it actually failed
+    return res.status(500).send("Internal Server Error"); 
+  }
+});
+
+// CRITICAL FOR VERCEL: You MUST export the app at the very bottom of server.js
+module.exports = app;
+
     
     // 2. SMART PARSING: Apps send the message in different fields. 
     // We check them all to find the actual text.
