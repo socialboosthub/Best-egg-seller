@@ -4,16 +4,17 @@
     {
       "src": "server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "**/*.{html,css,js,json,png}",
+      "use": "@vercel/static"
     }
   ],
   "rewrites": [
     {
       "source": "/webhook/sms",
-      "destination": "server.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/"
+      "destination": "/server.js"
     }
   ]
 }
+
