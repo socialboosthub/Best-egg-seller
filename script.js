@@ -824,3 +824,46 @@ window.generateReceiptPDF = (orderData) => {
 };
 
 window.ordersDataMap = {};
+
+
+// ==========================================
+// 🔥 CUSTOM ALERT OVERRIDE (MAGIC TRICK)
+// ==========================================
+window.alert = function(message) {
+    const modal = document.getElementById('custom-alert-modal');
+    const msgEl = document.getElementById('custom-alert-msg');
+    const iconEl = document.getElementById('custom-alert-icon');
+    const titleEl = document.getElementById('custom-alert-title');
+
+    // Make sure the modal actually exists on the page before trying to show it
+    if(!modal) {
+        console.log("Alert:", message);
+        return;
+    }
+
+    // Clean up the message text slightly
+    msgEl.innerText = message;
+
+    // Smart logic to style the popup based on the message content!
+    const msgLower = message.toLowerCase();
+    
+    if (message.includes('❌') || msgLower.includes('error') || msgLower.includes('failed') || msgLower.includes('invalid')) {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: var(--red-text);"></i>';
+        titleEl.innerText = "Oops!";
+    } 
+    else if (message.includes('✅') || msgLower.includes('success') || msgLower.includes('saved')) {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color: var(--green-text);"></i>';
+        titleEl.innerText = "Success!";
+    } 
+    else if (message.includes('⚠️') || msgLower.includes('missing') || msgLower.includes('required')) {
+        iconEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--primary-dark);"></i>';
+        titleEl.innerText = "Attention";
+    } 
+    else {
+        iconEl.innerHTML = '<i class="fa-solid fa-bell" style="color: var(--primary);"></i>';
+        titleEl.innerText = "Notice";
+    }
+
+    // Show the cool popup!
+    modal.style.display = 'flex';
+};
