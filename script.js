@@ -133,13 +133,19 @@ window.updateQty = (change) => {
 // --- Updated Order Initiation ---
 window.initiateOrder = () => {
     if (!auth.currentUser) return alert("Please login first.");
-    
+
     if (!userLocation || !userLocation.address) {
-        if(confirm("⚠️ Delivery Location Missing!\n\nPlease set your location to continue.")) {
+    window.customConfirm(
+        "⚠️ Delivery Location Missing!\n\nPlease set your location to continue.",
+        () => { // If they click 'OK/Continue'
             window.showPage('settings', document.querySelectorAll('.nav-item')[3]);
             setTimeout(() => window.initLocationFlow(), 500);
+        },
+        () => { // If they click 'Cancel'
+            console.log("User cancelled location setup.");
         }
-        return;
+    );
+    return;
     }
     // REPLACE WITH THIS
 if (!userPhone) {
