@@ -1337,3 +1337,28 @@ body.dark .modal-content .cancel-btn {
 [data-theme="dark"] #phone-modal p {
     color: #cccccc !important;
 }
+
+
+/* Fix visibility for the Master Alert Modal (Location/Errors/Success) */
+#custom-alert-modal #custom-alert-title {
+    color: #1a1d1f !important; /* Dark in light mode */
+}
+
+#custom-alert-modal #custom-alert-msg {
+    color: #444444 !important; /* Dark in light mode */
+}
+
+/* Dark Mode Overrides for the Master Alert */
+[data-theme="dark"] #custom-alert-modal #custom-alert-title {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #custom-alert-modal #custom-alert-msg {
+    color: #cccccc !important;
+}
+
+/* Ensure the alert background matches the theme */
+[data-theme="dark"] #custom-alert-modal .modal-content {
+    background-color: #1a1d1f !important;
+    border: 1px solid #333 !important;
+}
