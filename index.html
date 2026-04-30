@@ -340,5 +340,41 @@
         <div class="nav-item" onclick="window.showPage('settings', this)"><i class="fa-solid fa-sliders"></i></div>
     </nav>
 
+    <div id="phone-modal" class="custom-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="warning-icon">⚠️</span>
+            <h3>Phone Number Required!</h3>
+        </div>
+        <p>Please enter your phone number (e.g., 0712345678) so we can contact you for delivery:</p>
+        <input type="tel" id="phone-input" placeholder="07XXXXXXXX">
+        <div class="modal-actions">
+            <button onclick="closePhoneModal()" class="btn-cancel">Cancel</button>
+            <button onclick="submitPhoneNumber()" class="btn-ok">OK</button>
+        </div>
+    </div>
+</div>
+
+    <script>
+        function showPhoneModal() {
+    document.getElementById('phone-modal').style.display = 'flex';
+}
+
+function closePhoneModal() {
+    document.getElementById('phone-modal').style.display = 'none';
+}
+
+function submitPhoneNumber() {
+    const phone = document.getElementById('phone-input').value;
+    if (phone) {
+        console.log("Phone saved:", phone);
+        // Put your logic here to save the number
+        closePhoneModal();
+    } else {
+        alert("Please enter a valid number");
+    }
+}
+
+    </script>
 </body>
             </html>
