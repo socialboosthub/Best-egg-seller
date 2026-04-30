@@ -1141,3 +1141,40 @@ body.dark .modal-content .cancel-btn {
     color: var(--text-main);
      }
 
+
+
+#phone-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #222;
+    color: white;
+    box-sizing: border-box;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.btn-cancel {
+    background: transparent;
+    color: #4CAF50; /* Green text like your buttons */
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-ok {
+    background: transparent;
+    color: #4CAF50;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+
