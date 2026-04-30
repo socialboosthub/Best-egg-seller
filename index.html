@@ -339,21 +339,20 @@
         <div class="nav-item" onclick="window.showPage('orders', this)"><i class="fa-solid fa-receipt"></i></div>
         <div class="nav-item" onclick="window.showPage('settings', this)"><i class="fa-solid fa-sliders"></i></div>
     </nav>
-
-    <div id="phone-modal" class="custom-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span class="warning-icon">⚠️</span>
-            <h3>Phone Number Required!</h3>
+<div id="phone-modal" class="custom-modal">
+    <div class="phone-modal-container"> <div class="modal-header">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #ffb300; font-size: 24px;"></i>
+            <h3 class="phone-modal-title">Phone Number Required!</h3>
         </div>
-        <p>Please enter your phone number (e.g., 0712345678) so we can contact you for delivery:</p>
-        <input type="tel" id="phone-input" placeholder="07XXXXXXXX">
+        <p class="phone-modal-text">Please enter your phone number (e.g., 0712345678) so we can contact you for delivery:</p>
+        <input type="tel" id="phone-input" placeholder="07XXXXXXXX" maxlength="10">
         <div class="modal-actions">
             <button onclick="closePhoneModal()" class="btn-cancel">Cancel</button>
             <button onclick="submitPhoneNumber()" class="btn-ok">OK</button>
         </div>
     </div>
 </div>
+
 
     <script>
     function showPhoneModal() {
