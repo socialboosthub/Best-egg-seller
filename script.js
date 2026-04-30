@@ -879,7 +879,7 @@ window.generateReceiptPDF = (orderData) => {
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     doc.text("Thank you for your business!", 105, 280, { align: "center" });
-    doc.text("For support call: 0700 000 000", 105, 285, { align: "center" });
+    doc.text("For support call: 0745 862 002", 105, 285, { align: "center" });
 
     doc.save(`Receipt_EggMaster_${orderData.deliveryCode || "Order"}.pdf`);
 };
