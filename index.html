@@ -356,25 +356,25 @@
 </div>
 
     <script>
-        function showPhoneModal() {
-    document.getElementById('phone-modal').style.display = 'flex';
-}
-
-function closePhoneModal() {
-    document.getElementById('phone-modal').style.display = 'none';
-}
-
-function submitPhoneNumber() {
-    const phone = document.getElementById('phone-input').value;
-    if (phone) {
-        console.log("Phone saved:", phone);
-        // Put your logic here to save the number
-        closePhoneModal();
-    } else {
-        alert("Please enter a valid number");
+    function showPhoneModal() {
+        document.getElementById('phone-modal').style.display = 'flex';
     }
-}
 
+    function closePhoneModal() {
+        document.getElementById('phone-modal').style.display = 'none';
+    }
+
+    function submitPhoneNumber() {
+        const phone = document.getElementById('phone-input').value;
+        if (phone) {
+            // Your logic for eyesonreality.store
+            console.log("Phone saved:", phone);
+            closePhoneModal();
+        } else {
+            alert("Please enter a valid number");
+        }
+    }
     </script>
+    
 </body>
             </html>
