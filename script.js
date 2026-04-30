@@ -131,22 +131,24 @@ window.updateQty = (change) => {
 };
 
 // --- Updated Order Initiation ---
-window.initiateOrder = () => {
-    if (!auth.currentUser) return alert("Please login first.");
-
-    if (!userLocation || !userLocation.address) {
+// Replace the old location check inside initiateOrder with this:
+if (!userLocation || !userLocation.address) {
     window.customConfirm(
-        "⚠️ Delivery Location Missing!\n\nPlease set your location to continue.",
-        () => { // If they click 'OK/Continue'
+        "Please set your delivery location first so we know where to bring your order.",
+        () => { // If they click 'Set Location'
             window.showPage('settings', document.querySelectorAll('.nav-item')[3]);
-            setTimeout(() => window.initLocationFlow(), 500);
+            setTimeout(() => window.initLocationFlow(), 400);
         },
         () => { // If they click 'Cancel'
             console.log("User cancelled location setup.");
-        }
+        },
+        "Location Required ⚠️", // Distinct Title so it doesn't look like a repeat
+        "Set Location",         // Confirm Button text
+        "Cancel"                // Cancel Button text
     );
     return;
-    }
+}
+
     // REPLACE WITH THIS
 if (!userPhone) {
     showPhoneModal(); 
@@ -611,31 +613,41 @@ window.alert = function(message) {
 };
 
 // 2. Custom Confirm (For the GPS Choice)
-window.customConfirm = function(message, onConfirm, onCancel) {
+
+// 1. UPDATED CUSTOM CONFIRM (Allows custom titles and button texts)
+window.customConfirm = function(message, onConfirm, onCancel, customTitle = "Delivery Method", confirmText = "Confirm", cancelText = "Cancel") {
     const modal = document.getElementById('custom-alert-modal');
     const msgEl = document.getElementById('custom-alert-msg');
     const iconEl = document.getElementById('custom-alert-icon');
     const titleEl = document.getElementById('custom-alert-title');
     const singleBtn = document.getElementById('alert-actions-single');
     const choiceBtns = document.getElementById('alert-actions-choice');
+    const confirmBtn = document.getElementById('alert-confirm-btn');
+    const cancelBtn = document.getElementById('alert-cancel-btn');
 
     msgEl.innerText = message;
-    titleEl.innerText = "Delivery Method";
+    titleEl.innerText = customTitle; // Now changes based on the situation
     iconEl.innerHTML = '<i class="fa-solid fa-location-dot" style="color: #ffb300;"></i>';
+
+    // Update button text dynamically
+    if(confirmBtn) confirmBtn.innerText = confirmText;
+    if(cancelBtn) cancelBtn.innerText = cancelText;
 
     singleBtn.style.display = 'none';
     choiceBtns.style.display = 'flex';
     modal.style.display = 'flex';
 
-    document.getElementById('alert-confirm-btn').onclick = () => {
+    confirmBtn.onclick = () => {
         modal.style.display = 'none';
         onConfirm();
     };
-    document.getElementById('alert-cancel-btn').onclick = () => {
+    cancelBtn.onclick = () => {
         modal.style.display = 'none';
         onCancel();
     };
 };
+
+// 2. UPDATED INIT LOCATION FLOW
 window.initLocationFlow = function() {
     window.customConfirm(
         "Use GPS for exact delivery location? (Best for Drivers)",
@@ -656,9 +668,13 @@ window.initLocationFlow = function() {
         },
         () => { // User clicked 'List'
             window.openLocationSearch();
-        }
+        },
+        "Select Method", // Title for this specific popup
+        "Use GPS",       // Green confirm button text
+        "List Mode"      // Grey cancel button text
     );
 };
+
 
 
 window.openLocationSearch = () => {
