@@ -131,31 +131,30 @@ window.updateQty = (change) => {
 };
 
 // --- Updated Order Initiation ---
-// Replace the old location check inside initiateOrder with this:
-if (!userLocation || !userLocation.address) {
-    window.customConfirm(
-        "Please set your delivery location first so we know where to bring your order.",
-        () => { // If they click 'Set Location'
-            window.showPage('settings', document.querySelectorAll('.nav-item')[3]);
-            setTimeout(() => window.initLocationFlow(), 400);
-        },
-        () => { // If they click 'Cancel'
-            console.log("User cancelled location setup.");
-        },
-        "Location Required ⚠️", // Distinct Title so it doesn't look like a repeat
-        "Set Location",         // Confirm Button text
-        "Cancel"                // Cancel Button text
-    );
-    return;
-}
+window.initiateOrder = () => {
 
-    // REPLACE WITH THIS
-if (!userPhone) {
-    showPhoneModal(); 
-    return; // Stop the order here; the modal will take over
-}
+    if (!userLocation || !userLocation.address) {
+        window.customConfirm(
+            "Please set your delivery location first so we know where to bring your order.",
+            () => { 
+                window.showPage('settings', document.querySelectorAll('.nav-item')[3]);
+                setTimeout(() => window.initLocationFlow(), 400);
+            },
+            () => { 
+                console.log("User cancelled location setup.");
+            },
+            "Location Required ⚠️", 
+            "Set Location",         
+            "Cancel"                
+        );
+        return; // Now this is legal because it's inside a function!
+    }
 
-    
+    if (!userPhone) {
+        showPhoneModal(); 
+        return; 
+    }
+
     const quantity = parseInt(document.getElementById('shopQty').innerText);
     if (quantity > currentStock) {
         return alert(`⚠️ Not enough stock! Available: ${currentStock}`);
@@ -191,7 +190,8 @@ if (!userPhone) {
         payBtn.innerText = "Verify Payment";
         payBtn.onclick = window.verifyPayment;
     }
-};
+}; // This perfectly closes out the function
+
 
 window.copyToClipboard = (text, btn) => {
     navigator.clipboard.writeText(text).then(() => {
