@@ -1402,3 +1402,34 @@ body.dark .modal-content .cancel-btn {
     white-space: nowrap; /* Stops text from breaking into two lines */
     font-size: 14px; /* Perfectly sized text for mobile */
 }
+
+
+/* Container for the profile buttons */
+.profile-modal-actions {
+    display: flex;
+    gap: 10px; /* Space between the buttons */
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Force both buttons to take up equal space */
+.profile-modal-actions button {
+    flex: 1; 
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap; /* Keeps text on one line */
+}
+
+/* Optional: Keep your specific colors */
+#saveProfileBtn {
+    background-color: #ffb300; /* Your primary yellow/amber */
+    color: #000;
+}
+
+.btn-cancel {
+    background-color: #eee;
+    color: #333;
+}
