@@ -141,16 +141,12 @@ window.initiateOrder = () => {
         }
         return;
     }
+    // REPLACE WITH THIS
+if (!userPhone) {
+    showPhoneModal(); 
+    return; // Stop the order here; the modal will take over
+}
 
-    if (!userPhone) {
-        showPhoneModal();
-
-        if (!phoneInput || !/^(07|01)\d{8}$/.test(phoneInput.trim())) {
-            return alert("❌ A valid 10-digit phone number starting with 07 or 01 is required.");
-        }
-        userPhone = phoneInput.trim();
-        setDoc(doc(db, "users", auth.currentUser.uid), { phone: userPhone }, { merge: true });
-    }
     
     const quantity = parseInt(document.getElementById('shopQty').innerText);
     if (quantity > currentStock) {
@@ -884,4 +880,50 @@ window.generateReceiptPDF = (orderData) => {
 
 window.ordersDataMap = {};
 
+// --- STYLED PHONE MODAL LOGIC ---
+
+window.showPhoneModal = () => {
+    document.getElementById('phone-modal').style.display = 'flex';
+};
+
+window.closePhoneModal = () => {
+    document.getElementById('phone-modal').style.display = 'none';
+};
+
+window.submitPhoneNumber = async () => {
+    const input = document.getElementById('phone-input').value.trim();
+    const btn = document.querySelector('#phone-modal .btn-ok');
+    
+    // Regex: Starts with 07 or 01, total 10 digits
+    const phoneRegex = /^(07|01)\d{8}$/;
+
+    if (!phoneRegex.test(input)) {
+        alert("❌ Invalid format! Enter 10 digits starting with 07 or 01.");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+    try {
+        // Save to Firebase
+        if (auth.currentUser) {
+            await setDoc(doc(db, "users", auth.currentUser.uid), { 
+                phone: input 
+            }, { merge: true });
+            
+            userPhone = input; // Update local variable
+            closePhoneModal();
+            alert("✅ Phone number saved! You can now place your order.");
+            
+            // Re-trigger the order logic automatically
+            window.initiateOrder(); 
+        }
+    } catch (e) {
+        alert("Error saving: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "OK";
+    }
+};
 
