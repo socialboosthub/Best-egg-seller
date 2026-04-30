@@ -1387,3 +1387,18 @@ body.dark .modal-content .cancel-btn {
     background: rgba(255, 82, 82, 0.2) !important;
     color: #ff1744 !important;
 }
+
+/* Force identical button sizes in the Custom Confirm Modal */
+#alert-actions-choice {
+    display: flex;
+    gap: 12px; /* Smooth spacing between the two buttons */
+    width: 100%;
+}
+
+#alert-actions-choice button {
+    flex: 1; /* This forces BOTH buttons to take up exactly 50% of the space */
+    margin: 0; 
+    padding: 14px 5px; /* Adjust padding to fit */
+    white-space: nowrap; /* Stops text from breaking into two lines */
+    font-size: 14px; /* Perfectly sized text for mobile */
+}
