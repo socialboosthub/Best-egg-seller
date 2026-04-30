@@ -569,36 +569,94 @@ window.changeLanguage = async (lang) => {
 };
 
 // --- LOCATION ---
-window.initLocationFlow = function() {
-    const choice = confirm("Use GPS for exact delivery location?\n\n[OK] = Use GPS (Best for Drivers)\n[Cancel] = Select Area List");
-    if (choice) {
-        if (!navigator.geolocation) {
-            alert("GPS not supported on this device. Opening list...");
-            return window.openLocationSearch();
-        }
-        
-        navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-                userLocation = { 
-                    lat: pos.coords.latitude, 
-                    lng: pos.coords.longitude, 
-                    address: "GPS Location (Exact Pin)", 
-                    timestamp: new Date() 
-                };
-                await saveLoc();
-                alert("✅ GPS Location Saved!\nThe driver will see your exact map pin.");
-            }, 
-            (err) => { 
-                console.error("GPS Error:", err);
-                alert("⚠️ GPS Failed or Denied.\nPlease select your area manually."); 
-                window.openLocationSearch(); 
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-    } else { 
-        window.openLocationSearch(); 
+// ==========================================
+// 🔥 THE MASTER ALERT SYSTEM (ALL-IN-ONE)
+// ==========================================
+
+// 1. Standard Alert Override (Restores your nice Success/Error styles)
+window.alert = function(message) {
+    const modal = document.getElementById('custom-alert-modal');
+    const msgEl = document.getElementById('custom-alert-msg');
+    const iconEl = document.getElementById('custom-alert-icon');
+    const titleEl = document.getElementById('custom-alert-title');
+    const singleBtn = document.getElementById('alert-actions-single');
+    const choiceBtns = document.getElementById('alert-actions-choice');
+
+    if(!modal) return console.log("Alert:", message);
+
+    msgEl.innerText = message;
+    singleBtn.style.display = 'block';
+    choiceBtns.style.display = 'none';
+
+    // Smart Styling Logic
+    const msgLower = message.toLowerCase();
+    if (message.includes('❌') || msgLower.includes('error') || msgLower.includes('failed')) {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: #f44336;"></i>';
+        titleEl.innerText = "Oops!";
+    } else if (message.includes('✅') || msgLower.includes('success')) {
+        iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color: #4caf50;"></i>';
+        titleEl.innerText = "Success!";
+    } else if (message.includes('⚠️') || msgLower.includes('required')) {
+        iconEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: #ffb300;"></i>';
+        titleEl.innerText = "Attention";
+    } else {
+        iconEl.innerHTML = '<i class="fa-solid fa-bell" style="color: #ffb300;"></i>';
+        titleEl.innerText = "Notice";
     }
+
+    modal.style.display = 'flex';
 };
+
+// 2. Custom Confirm (For the GPS Choice)
+window.customConfirm = function(message, onConfirm, onCancel) {
+    const modal = document.getElementById('custom-alert-modal');
+    const msgEl = document.getElementById('custom-alert-msg');
+    const iconEl = document.getElementById('custom-alert-icon');
+    const titleEl = document.getElementById('custom-alert-title');
+    const singleBtn = document.getElementById('alert-actions-single');
+    const choiceBtns = document.getElementById('alert-actions-choice');
+
+    msgEl.innerText = message;
+    titleEl.innerText = "Delivery Method";
+    iconEl.innerHTML = '<i class="fa-solid fa-location-dot" style="color: #ffb300;"></i>';
+
+    singleBtn.style.display = 'none';
+    choiceBtns.style.display = 'flex';
+    modal.style.display = 'flex';
+
+    document.getElementById('alert-confirm-btn').onclick = () => {
+        modal.style.display = 'none';
+        onConfirm();
+    };
+    document.getElementById('alert-cancel-btn').onclick = () => {
+        modal.style.display = 'none';
+        onCancel();
+    };
+};
+window.initLocationFlow = function() {
+    window.customConfirm(
+        "Use GPS for exact delivery location? (Best for Drivers)",
+        () => { // User clicked 'Use GPS'
+            if (!navigator.geolocation) {
+                alert("❌ GPS not supported. Opening list...");
+                return window.openLocationSearch();
+            }
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, address: "GPS Location (Exact Pin)" };
+                    await saveLoc();
+                    alert("✅ GPS Location Saved!");
+                }, 
+                (err) => { alert("⚠️ GPS Failed. Select manually."); window.openLocationSearch(); },
+                { enableHighAccuracy: true }
+            );
+        },
+        () => { // User clicked 'List'
+            window.openLocationSearch();
+        }
+    );
+};
+
 
 window.openLocationSearch = () => {
     document.getElementById('location-modal').style.display = 'flex';
@@ -826,44 +884,3 @@ window.generateReceiptPDF = (orderData) => {
 window.ordersDataMap = {};
 
 
-// ==========================================
-// 🔥 CUSTOM ALERT OVERRIDE (MAGIC TRICK)
-// ==========================================
-window.alert = function(message) {
-    const modal = document.getElementById('custom-alert-modal');
-    const msgEl = document.getElementById('custom-alert-msg');
-    const iconEl = document.getElementById('custom-alert-icon');
-    const titleEl = document.getElementById('custom-alert-title');
-
-    // Make sure the modal actually exists on the page before trying to show it
-    if(!modal) {
-        console.log("Alert:", message);
-        return;
-    }
-
-    // Clean up the message text slightly
-    msgEl.innerText = message;
-
-    // Smart logic to style the popup based on the message content!
-    const msgLower = message.toLowerCase();
-    
-    if (message.includes('❌') || msgLower.includes('error') || msgLower.includes('failed') || msgLower.includes('invalid')) {
-        iconEl.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: var(--red-text);"></i>';
-        titleEl.innerText = "Oops!";
-    } 
-    else if (message.includes('✅') || msgLower.includes('success') || msgLower.includes('saved')) {
-        iconEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color: var(--green-text);"></i>';
-        titleEl.innerText = "Success!";
-    } 
-    else if (message.includes('⚠️') || msgLower.includes('missing') || msgLower.includes('required')) {
-        iconEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--primary-dark);"></i>';
-        titleEl.innerText = "Attention";
-    } 
-    else {
-        iconEl.innerHTML = '<i class="fa-solid fa-bell" style="color: var(--primary);"></i>';
-        titleEl.innerText = "Notice";
-    }
-
-    // Show the cool popup!
-    modal.style.display = 'flex';
-};
