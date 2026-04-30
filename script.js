@@ -857,12 +857,12 @@ window.generateReceiptPDF = (orderData) => {
     const finalY = doc.lastAutoTable.finalY + 10;
     
     doc.setFontSize(12);
-    doc.text(`Subtotal:`, 140, finalY);
+    doc.text(`Subtotal:`, 130, finalY);
     doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY);
     
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text(`TOTAL PAID:`, 140, finalY + 10);
+    doc.text(`TOTAL PAID:`, 130, finalY + 10);
     doc.setTextColor(46, 125, 50); 
     doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY + 10);
 
