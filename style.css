@@ -1320,3 +1320,20 @@ body.dark .modal-content .cancel-btn {
 }
 
 
+/* Specifically target the phone modal text for visibility */
+#phone-modal h3 {
+    color: #1a1d1f !important; /* Force dark text in light mode */
+}
+
+#phone-modal p {
+    color: #444444 !important; /* Force readable grey in light mode */
+}
+
+/* Flip colors only when Dark Mode is active */
+[data-theme="dark"] #phone-modal h3 {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] #phone-modal p {
+    color: #cccccc !important;
+}
