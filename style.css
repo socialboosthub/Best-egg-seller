@@ -1142,16 +1142,20 @@ body.dark .modal-content .cancel-btn {
      }
 
 
-.modal-content {
-    background-color: #1a1a1a; /* Dark background matching your theme */
-    color: white;
-    padding: 20px;
-    border-radius: 15px;
-    width: 85%;
-    max-width: 400px;
-    text-align: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+.custom-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7); /* Dim the background */
+    align-items: center;
+    justify-content: center;
 }
+
+
 
 .modal-header h3 {
     margin: 10px 0;
