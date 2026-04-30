@@ -1142,6 +1142,27 @@ body.dark .modal-content .cancel-btn {
      }
 
 
+.modal-content {
+    background-color: #1a1a1a; /* Dark background matching your theme */
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    width: 85%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.modal-header h3 {
+    margin: 10px 0;
+    color: #fff;
+}
+
+.modal-content p {
+    font-size: 14px;
+    color: #ccc;
+    margin-bottom: 15px;
+}
 
 #phone-input {
     width: 100%;
