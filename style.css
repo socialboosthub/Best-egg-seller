@@ -1362,3 +1362,17 @@ body.dark .modal-content .cancel-btn {
     background-color: #1a1d1f !important;
     border: 1px solid #333 !important;
 }
+
+/* Target Cancel buttons in M-Pesa and Top-Up modals during Dark Mode */
+[data-theme="dark"] #mpesa-modal .btn-cancel,
+[data-theme="dark"] #topup-modal .btn-cancel {
+    color: #ff5252 !important; /* Brighter red for visibility in dark mode */
+    font-weight: 700;
+}
+
+/* Optional: if you want them to have a slight red glow/hover effect */
+[data-theme="dark"] #mpesa-modal .btn-cancel:hover,
+[data-theme="dark"] #topup-modal .btn-cancel:hover {
+    color: #ff1744 !important;
+    text-decoration: underline;
+}
