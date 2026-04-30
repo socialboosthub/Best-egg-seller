@@ -1425,3 +1425,36 @@ body.dark .modal-content .cancel-btn {
     justify-content: center;
     gap: 10px;
 }
+
+#saveProfileBtn {
+    all: unset; /* This resets the button completely */
+    width: 130px;
+    height: 45px;
+    background-color: #FFB300;
+    color: black;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#profile-modal .cancel-btn {
+    all: unset;
+    width: 130px;
+    height: 45px;
+    background-color: #f0f0f0;
+    color: #333;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
