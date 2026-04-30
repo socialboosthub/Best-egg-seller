@@ -143,7 +143,8 @@ window.initiateOrder = () => {
     }
 
     if (!userPhone) {
-        let phoneInput = prompt("⚠️ Phone Number Required!\n\nPlease enter your phone number (e.g., 0712345678) so we can contact you for delivery:");
+        showPhoneModal();
+
         if (!phoneInput || !/^(07|01)\d{8}$/.test(phoneInput.trim())) {
             return alert("❌ A valid 10-digit phone number starting with 07 or 01 is required.");
         }
