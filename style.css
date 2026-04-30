@@ -1429,7 +1429,7 @@ body.dark .modal-content .cancel-btn {
 #saveProfileBtn {
     all: unset; /* This resets the button completely */
     width: 130px;
-    height: 30px;
+    height: 20px;
     background-color: #FFB300;
     color: black;
     border-radius: 8px;
@@ -1445,7 +1445,7 @@ body.dark .modal-content .cancel-btn {
 #profile-modal .cancel-btn {
     all: unset;
     width: 130px;
-    height: 30px;
+    height: 20px;
     background-color: #f0f0f0;
     color: #333;
     border-radius: 8px;
