@@ -912,17 +912,7 @@ window.viewStatementPage = () => {
     doc.text("EggMaster Statement", 105, 20, { align: "center" });
 
     // Table
-    doc.autoTable({
-        startY: 50,
-        head: [['Date', 'Ref', 'Code', 'Qty', 'Amount']],
-        body: orders.map(o => [
-            o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString(),
-            o.deliveryCode || "N/A",
-            o.mpesaCode || "WALLET",
-            o.quantity,
-            "Ksh " + o.totalPrice
-        ])
-    });
+  
 
     const fileName = "EggMaster_Statement.pdf";
 
@@ -940,38 +930,10 @@ window.viewStatementPage = () => {
     }
 };
 
-            text.innerHTML = "Downloaded successfully ✅";
-
-            setTimeout(() => {
-                notif.style.display = "none";
-            }, 2000);
-        };
-
-    }, 1200);
-};
-   
+            
 
 
     // --- Save or Share Logic ---
-    const fileName = `Statement_EggMaster_${auth.currentUser.uid.substring(0,5)}.pdf`;
-
-    if (action === 'download') {
-        doc.save(fileName);
-    } else if (action === 'share') {
-        const pdfBlob = doc.output('blob');
-        const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-                await navigator.share({ files: [file], title: 'Account Statement' });
-            } catch (err) {
-                console.log("Share cancelled or failed", err);
-            }
-        } else {
-            alert("Sharing not supported on this device. Downloading instead.");
-            doc.save(fileName);
-        }
-    }
-};
 
 
 // --- STYLED PHONE MODAL LOGIC ---
@@ -1023,14 +985,7 @@ window.submitPhoneNumber = async () => {
 
 // --- NEW ACCOUNT STATEMENT LOGIC ---
 
-window.generateStatementPDF = async () => {
-    if (!auth.currentUser) return alert("Please login to view statements.");
 
-    const orders = Object.values(window.ordersDataMap).sort((a, b) => {
-        const dateA = a.createdAt.seconds || a.createdAt;
-        const dateB = b.createdAt.seconds || b.createdAt;
-        return dateB - dateA;
-    });
 
     if (orders.length === 0) return alert("⚠️ No order history found.");
 
@@ -1041,7 +996,7 @@ window.generateStatementPDF = async () => {
             where("usedBy", "==", auth.currentUser.uid),
             where("purpose", "==", "Wallet Top Up")
         );
-        const mpesaSnap = await getDoc(mpesaQuery); // Note: If using multiple, use getDocs
+        // Note: If using multiple, use getDocs
         
         // For simplicity, we look for the last top-up in your existing payments
         // If you don't have a specific top-up collection, we just show the section if they have balance
@@ -1130,4 +1085,114 @@ document.getElementById('shareBtn').onclick = () => {
     }
 }
 
+// ==========================================
+// ✅ PDF NOTIFICATION UI
+// ==========================================
+function showPDFNotification(status, fileBlob = null) {
+    const notif = document.getElementById('pdfNotif');
+    const text = document.getElementById('pdfNotifText');
+    const actions = document.getElementById('pdfNotifActions');
+
+    if (!notif || !text || !actions) return;
+
+    notif.style.display = 'flex';
+    actions.innerHTML = '';
+
+    if (status === 'downloading') {
+        text.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...`;
+    }
+
+    if (status === 'done') {
+        text.innerHTML = `<i class="fa-solid fa-circle-check"></i> PDF Ready`;
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.innerText = "Cancel";
+        cancelBtn.className = "notif-btn cancel";
+        cancelBtn.onclick = () => notif.style.display = 'none';
+
+        const viewBtn = document.createElement('button');
+        viewBtn.innerText = "View PDF";
+        viewBtn.className = "notif-btn view";
+        viewBtn.onclick = () => {
+            const url = URL.createObjectURL(fileBlob);
+            window.open(url);
+        };
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(viewBtn);
+    }
+}
+
+
+// ==========================================
+// ✅ MAIN PDF GENERATOR (ONLY ONE)
+// ==========================================
+window.processAndHandlePDF = async (action) => {
+    const orders = Object.values(window.ordersDataMap || []);
+    if (!orders.length) return alert("⚠️ No order history found");
+
+    showPDFNotification('downloading');
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const primaryColor = [255, 179, 0];
+
+    // HEADER
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, 210, 40, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.text("EggMaster Statement", 105, 20, { align: "center" });
+
+    // TABLE
+    doc.autoTable({
+        startY: 50,
+        head: [['Date', 'Ref', 'Code', 'Qty', 'Amount']],
+        body: orders.map(o => [
+            o.createdAt?.toDate
+                ? o.createdAt.toDate().toLocaleDateString()
+                : new Date(o.createdAt).toLocaleDateString(),
+            o.deliveryCode || "N/A",
+            o.mpesaCode || "WALLET",
+            o.quantity,
+            "Ksh " + o.totalPrice
+        ])
+    });
+
+    const fileName = "EggMaster_Statement.pdf";
+
+    if (action === "download") {
+        const blob = doc.output("blob");
+
+        setTimeout(() => {
+            showPDFNotification('done', blob);
+        }, 1000);
+
+        doc.save(fileName);
+
+    } else if (action === "share") {
+        const blob = doc.output("blob");
+        const file = new File([blob], fileName, { type: "application/pdf" });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: "Statement" });
+        } else {
+            doc.save(fileName);
+        }
+    }
+};
+
+
+// ==========================================
+// ✅ BUTTON HANDLERS
+// ==========================================
+document.getElementById('exportBtn').onclick = () => {
+    window.processAndHandlePDF('download');
+};
+
+document.getElementById('shareBtn').onclick = () => {
+    window.processAndHandlePDF('share');
+};
 
