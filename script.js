@@ -1100,11 +1100,18 @@ async function processAndHandlePDF(orders, action) {
     }
 }
 
-// --- PDF GENERATOR (RECEIPTS) ---
-window.generateReceiptPDF = (orderData) => {
-    // 1. Check if jspdf is loaded properly
+/// --- PDF GENERATOR (RECEIPTS) ---
+window.generateReceiptPDF = (orderId) => {
+    // Check for library
     if (!window.jspdf) {
-        alert("PDF library is still loading or missing. Please refresh and try again.");
+        alert("PDF library is still loading. Please wait a second and try again.");
+        return;
+    }
+
+    // Fetch the order using the ID passed from the button
+    const orderData = window.ordersDataMap[orderId];
+    if (!orderData) {
+        alert("Order details missing. Please refresh the page.");
         return;
     }
 
@@ -1133,7 +1140,18 @@ window.generateReceiptPDF = (orderData) => {
     doc.setFontSize(10);
     
     const startY = 55;
-    const dateStr = orderData.createdAt.toDate ? orderData.createdAt.toDate().toLocaleString() : new Date(orderData.createdAt).toLocaleString();
+
+    // SAFE DATE PARSING
+    let dateStr = "N/A";
+    if (orderData.createdAt) {
+        if (typeof orderData.createdAt.toDate === 'function') {
+            dateStr = orderData.createdAt.toDate().toLocaleString();
+        } else if (orderData.createdAt.seconds) {
+            dateStr = new Date(orderData.createdAt.seconds * 1000).toLocaleString();
+        } else {
+            dateStr = new Date(orderData.createdAt).toLocaleString();
+        }
+    }
 
     doc.setFont("helvetica", "bold");
     doc.text("BILLED TO:", 14, startY);
@@ -1148,7 +1166,11 @@ window.generateReceiptPDF = (orderData) => {
     doc.setFont("helvetica", "normal");
     doc.text(`Order Ref: #${orderData.deliveryCode || "PENDING"}`, 140, startY + 6);
     doc.text(`Date: ${dateStr}`, 140, startY + 12);
-    doc.text(`Status: ${orderData.status}`, 140, startY + 18);
+    doc.text(`Status: ${orderData.status || "Completed"}`, 140, startY + 18);
+
+    // Ensure numbers don't crash the script
+    const safeUnitPrice = Number(orderData.unitPrice || 0);
+    const safeTotalPrice = Number(orderData.totalPrice || 0);
 
     // Items Table
     doc.autoTable({
@@ -1156,10 +1178,10 @@ window.generateReceiptPDF = (orderData) => {
         head: [['Description', 'Quantity', 'Unit Price', 'Total']],
         body: [
             [
-                orderData.item, 
-                orderData.quantity + " Trays", 
-                "Ksh " + orderData.unitPrice, 
-                "Ksh " + orderData.totalPrice.toLocaleString()
+                orderData.item || "Tray of 30", 
+                (orderData.quantity || 0) + " Trays", 
+                "Ksh " + safeUnitPrice.toLocaleString(), 
+                "Ksh " + safeTotalPrice.toLocaleString()
             ]
         ],
         theme: 'grid',
@@ -1167,18 +1189,19 @@ window.generateReceiptPDF = (orderData) => {
         styles: { fontSize: 11, cellPadding: 5 },
     });
 
-    const finalY = doc.lastAutoTable.finalY + 10;
+    // Safely get the final Y position of the table
+    const finalY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : startY + 50) + 10;
     
     // Totals
     doc.setFontSize(12);
     doc.text(`Subtotal:`, 140, finalY);
-    doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY);
+    doc.text(`Ksh ${safeTotalPrice.toLocaleString()}`, 170, finalY);
     
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.text(`TOTAL PAID:`, 140, finalY + 10);
     doc.setTextColor(46, 125, 50); 
-    doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY + 10);
+    doc.text(`Ksh ${safeTotalPrice.toLocaleString()}`, 170, finalY + 10);
 
     // Payment Box
     doc.setTextColor(...darkColor);
@@ -1200,5 +1223,3 @@ window.generateReceiptPDF = (orderData) => {
     // Trigger Download
     doc.save(`Receipt_EggMaster_${orderData.deliveryCode || "Order"}.pdf`);
 };
-
-
