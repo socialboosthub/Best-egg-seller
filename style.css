@@ -1674,3 +1674,37 @@ body.dark .modal-content .cancel-btn {
     background: rgba(33, 150, 243, 0.2) !important;
     color: #2196f3 !important;
 }
+
+/* =========================================
+   FIX BACKGROUNDS FOR STATEMENT IN DARK MODE
+   ========================================= */
+
+/* 1. Change background for "Account Statement" summary boxes */
+[data-theme="dark"] .summary-box {
+    background-color: #1a1d1f !important; /* Darker grey to match theme */
+    border: 1px solid #272b30 !important;  /* Darker border */
+}
+
+/* 2. Change background for the whole table container */
+[data-theme="dark"] .statement-container {
+    background-color: #1a1d1f !important;
+    border-color: #272b30 !important;
+}
+
+/* 3. Specifically target the "Mpesa Date, Code" header columns background */
+[data-theme="dark"] .statement-table th {
+    background-color: #212427 !important; /* Slightly lighter than the card for contrast */
+    color: #9a9fa5 !important;           /* Subtle text for the headers */
+    border-bottom: 2px solid #272b30 !important;
+}
+
+/* 4. Ensure the table rows (td) also have the dark background */
+[data-theme="dark"] .statement-table td {
+    background-color: transparent !important; /* Let the container color show through */
+    border-bottom: 1px solid #272b30 !important;
+}
+
+/* 5. Fix the "No Data" icon area background */
+[data-theme="dark"] .no-data {
+    background-color: #1a1d1f !important;
+}
