@@ -1741,26 +1741,24 @@ body.dark .modal-content .cancel-btn {
     border: 1px solid #272b30 !important;
 }
 
-/* =========================================
-   SURGICAL FIX FOR THE TWO WHITE BARS
-   ========================================= */
-
-/* 1. Fixes the white bar behind "Account Statement" */
-[data-theme="dark"] .page-title {
+/* Works for BOTH systems */
+[data-theme="dark"] .page-title,
+body.dark .page-title {
     background-color: var(--bg) !important;
     color: var(--text-main) !important;
 }
 
-/* 2. Fixes the white bar on the Table Headers (Date, Code, etc.) */
-[data-theme="dark"] .statement-table th {
-    background-color: #272b30 !important; /* Dark grey to match your theme */
+/* Table header fix */
+[data-theme="dark"] .statement-table th,
+body.dark .statement-table th {
+    background-color: #272b30 !important;
     color: #9a9fa5 !important;
     border-bottom: 2px solid #3a3f45 !important;
 }
 
-/* 3. Fixes the white bar behind the table itself */
-[data-theme="dark"] .statement-container {
+/* Container fix */
+[data-theme="dark"] .statement-container,
+body.dark .statement-container {
     background-color: #1a1d1f !important;
     border-color: #272b30 !important;
 }
-
