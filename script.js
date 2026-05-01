@@ -814,6 +814,39 @@ if(heroBtn) heroBtn.onclick = () => window.showPage('shop', document.querySelect
 
 window.logoutUser = () => signOut(auth).then(() => location.reload());
 
+function showPDFNotification(status, fileBlob = null) {
+    const notif = document.getElementById('pdfNotif');
+    const text = document.getElementById('pdfNotifText');
+    const actions = document.getElementById('pdfNotifActions');
+
+    notif.style.display = 'flex';
+    actions.innerHTML = '';
+
+    if (status === 'downloading') {
+        text.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...`;
+    }
+
+    if (status === 'done') {
+        text.innerHTML = `<i class="fa-solid fa-circle-check"></i> PDF Ready`;
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.innerText = "Cancel";
+        cancelBtn.className = "notif-btn cancel";
+        cancelBtn.onclick = () => notif.style.display = 'none';
+
+        const viewBtn = document.createElement('button');
+        viewBtn.innerText = "View PDF";
+        viewBtn.className = "notif-btn view";
+        viewBtn.onclick = () => {
+            const url = URL.createObjectURL(fileBlob);
+            window.open(url);
+        };
+
+        actions.appendChild(cancelBtn);
+        actions.appendChild(viewBtn);
+    }
+}
+
 // PDF GENERATOR
 
    // --- NEW ACCOUNT STATEMENT LOGIC ---
@@ -1063,6 +1096,7 @@ document.getElementById('shareBtn').onclick = () => {
 };
 
 // Internal Helper to actually build the PDF when buttons are clicked
+showPDFNotification('downloading');
 async function processAndHandlePDF(orders, action) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -1086,7 +1120,13 @@ async function processAndHandlePDF(orders, action) {
     const fileName = `Statement_${auth.currentUser.uid.substring(0,5)}.pdf`;
 
     if (action === 'download') {
-        doc.save(fileName);
+    const pdfBlob = doc.output('blob');
+
+    setTimeout(() => {
+        showPDFNotification('done', pdfBlob);
+    }, 1200);
+
+    doc.save(fileName);
     } else {
         const pdfBlob = doc.output('blob');
         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
