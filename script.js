@@ -790,11 +790,10 @@ function listenToOrders() {
                     </div>
                     
                     <div style="width:100%; margin-top:10px; padding-top:10px; border-top:1px dashed #eee; display:flex; justify-content:flex-end;">
-                         // Change this line inside listenToOrders:
-<button onclick="window.generateReceiptPDF('${o.id}')" 
-    style="background:#FFEBEE; color:#D32F2F; border:none; padding:8px 15px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
-    <i class="fa-solid fa-file-pdf"></i> Download Receipt
-</button>
+                     <button onclick="window.generateReceiptPDF('${o.id}')" 
+                       style="background:#FFEBEE; color:#D32F2F; border:none; padding:8px 15px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                       <i class="fa-solid fa-file-pdf"></i> Download Receipt
+                     </button>
 
                     </div>
                 </div>`;
