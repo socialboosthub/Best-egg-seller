@@ -1632,3 +1632,62 @@ body.dark .modal-content .cancel-btn {
     color: var(--text-main);
 }
 
+/* =========================================
+   DARK MODE FIXES FOR STATEMENT AREA
+   ========================================= */
+
+/* Fix summary box text */
+[data-theme="dark"] .statement-dashboard .summary-box {
+    background: var(--card);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .summary-box .amount {
+    color: #ffffff !important; /* Forces the money amount to be bright white */
+}
+
+[data-theme="dark"] .summary-box small {
+    color: #9a9fa5 !important;
+}
+
+/* Fix table headers and rows */
+[data-theme="dark"] .statement-container {
+    background: var(--card);
+    border-color: var(--border);
+}
+
+[data-theme="dark"] .statement-table th {
+    background: #272b30 !important; 
+    color: #cccccc !important; 
+    border-bottom: 2px solid #3a3f45 !important;
+}
+
+[data-theme="dark"] .statement-table td {
+    color: #efefef !important; /* Ensure transaction details are visible */
+    border-bottom: 1px solid var(--border);
+}
+
+/* Fix Status Pills for Dark Mode (Makes them readable instead of pale pastels) */
+[data-theme="dark"] .status-paid {
+    background: rgba(76, 175, 80, 0.15) !important;
+    color: #81c784 !important; /* Bright green text */
+}
+
+[data-theme="dark"] .status-wallet {
+    background: rgba(33, 150, 243, 0.15) !important;
+    color: #64b5f6 !important; /* Bright blue text */
+}
+
+/* Fix empty state text and icons */
+[data-theme="dark"] .no-data {
+    color: #9a9fa5;
+}
+
+[data-theme="dark"] .no-data i {
+    color: #3f444a;
+}
+
+/* Fix PDF/Preview Header Text */
+[data-theme="dark"] .official-header h2 {
+    color: #ffffff !important;
+}
