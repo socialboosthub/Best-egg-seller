@@ -1463,4 +1463,16 @@ body.dark .modal-content .cancel-btn {
   color: var(--red-text);
 }
 
+.button-group {
+    display: flex;
+    gap: 15px; /* Adds space between the Share and Export buttons */
+    justify-content: flex-start; 
+}
+
+.btn-share, .btn-export {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    /* Add your specific button sizing and border-radius here */
+}
 
