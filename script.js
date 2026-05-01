@@ -892,18 +892,61 @@ window.viewStatementPage = () => {
 
 
 // 2. Generates the Professional PDF with M-Pesa Codes included
-window.processAndHandlePDF = async (action) => {
-    const orders = Object.values(window.ordersDataMap || {}).sort((a, b) => {
-        const dateA = a.createdAt.seconds || a.createdAt;
-        const dateB = b.createdAt.seconds || b.createdAt;
-        return dateB - dateA;
-    });
 
-    if (orders.length === 0) return alert("⚠️ No order history found to export.");
+   window.processAndHandlePDF = async (action) => {
+    const notif = document.getElementById('pdfNotif');
+    const text = document.getElementById('pdfNotifText');
+
+    const orders = Object.values(window.ordersDataMap || []);
+
+    if (!orders.length) return alert("⚠️ No order history found");
+
+    notif.style.display = "flex";
+    text.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...`;
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
+    doc.text("EggMaster Statement", 20, 20);
+
+    doc.autoTable({
+        startY: 30,
+        head: [['Date', 'Ref', 'Code', 'Qty', 'Amount']],
+        body: orders.map(o => [
+            o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString(),
+            o.deliveryCode || "N/A",
+            o.mpesaCode || "WALLET",
+            o.quantity,
+            "Ksh " + o.totalPrice
+        ])
+    });
+
+    const fileName = "EggMaster_Statement.pdf";
+
+    const blob = doc.output('blob');
+
+    setTimeout(() => {
+        text.innerHTML = "PDF Ready ✅";
+
+        const actions = document.getElementById('pdfNotifActions');
+        actions.innerHTML = `
+            <button onclick="document.getElementById('pdfNotif').style.display='none'">Close</button>
+            <button id="downloadPdfBtn">Download</button>
+        `;
+
+        document.getElementById('downloadPdfBtn').onclick = () => {
+            doc.save(fileName);
+
+            text.innerHTML = "Downloaded successfully ✅";
+
+            setTimeout(() => {
+                notif.style.display = "none";
+            }, 2000);
+        };
+
+    }, 1200);
+};
+   
     // --- Header Styling ---
     const primaryColor = [255, 179, 0]; // Your Yellow Theme
     const darkColor = [26, 29, 31];
@@ -1096,10 +1139,7 @@ document.getElementById('shareBtn').onclick = () => {
 };
 
 // Internal Helper to actually build the PDF when buttons are clicked
-showPDFNotification('downloading');
-async function processAndHandlePDF(orders, action) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+
     
     // ... (Keep your existing PDF styling logic here: Header, Colors, etc.) ...
     // Just ensure you add the "M-Pesa Code" column in doc.autoTable
