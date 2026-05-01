@@ -815,92 +815,137 @@ if(heroBtn) heroBtn.onclick = () => window.showPage('shop', document.querySelect
 window.logoutUser = () => signOut(auth).then(() => location.reload());
 
 // PDF GENERATOR
-window.generateReceiptPDF = (orderData) => {
+
+   // --- NEW ACCOUNT STATEMENT LOGIC ---
+
+// 1. Opens the page and fills the HTML table
+window.viewStatementPage = () => {
+    if (!auth.currentUser) return alert("Please login to view statements.");
+
+    // Get orders and sort by newest first
+    const orders = Object.values(window.ordersDataMap || {}).sort((a, b) => {
+        const dateA = a.createdAt.seconds || a.createdAt;
+        const dateB = b.createdAt.seconds || b.createdAt;
+        return dateB - dateA;
+    });
+
+    // Update Top Summary Boxes
+    document.getElementById('statTotalOrders').innerText = orders.length;
+    document.getElementById('statWalletBal').innerText = "Ksh " + userWalletBalance.toLocaleString();
+
+    // Fill the Table
+    const tableBody = document.getElementById('statementTableBody');
+    tableBody.innerHTML = ""; 
+
+    if (orders.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #888;">No order history found.</td></tr>`;
+    } else {
+        orders.forEach(o => {
+            const d = o.createdAt.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString();
+            tableBody.innerHTML += `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 10px;">${d}</td>
+                    <td style="padding: 10px; font-weight: bold; color: #1976D2;">${o.mpesaCode || 'WALLET'}</td>
+                    <td style="padding: 10px;">${o.quantity}</td>
+                    <td style="padding: 10px;">Ksh ${o.totalPrice.toLocaleString()}</td>
+                </tr>
+            `;
+        });
+    }
+
+    // Show the page (hides others)
+    window.showPage('statements', null);
+};
+
+
+// 2. Generates the Professional PDF with M-Pesa Codes included
+window.processAndHandlePDF = async (action) => {
+    const orders = Object.values(window.ordersDataMap || {}).sort((a, b) => {
+        const dateA = a.createdAt.seconds || a.createdAt;
+        const dateB = b.createdAt.seconds || b.createdAt;
+        return dateB - dateA;
+    });
+
+    if (orders.length === 0) return alert("⚠️ No order history found to export.");
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    const primaryColor = [255, 179, 0]; 
-    const darkColor = [26, 29, 31];     
+    // --- Header Styling ---
+    const primaryColor = [255, 179, 0]; // Your Yellow Theme
+    const darkColor = [26, 29, 31];
 
     doc.setFillColor(...primaryColor);
     doc.rect(0, 0, 210, 40, 'F');
-
-    doc.setFontSize(22);
     doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
     doc.text("EggMaster Wholesale", 105, 20, { align: "center" });
     
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text("Official Payment Receipt", 105, 30, { align: "center" });
+    doc.text("Official Account Statement", 105, 30, { align: "center" });
 
+    // --- Customer Details ---
     doc.setTextColor(...darkColor);
     doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("CUSTOMER DETAILS:", 14, 50);
     
-    const startY = 55;
-    const dateStr = orderData.createdAt.toDate ? orderData.createdAt.toDate().toLocaleString() : new Date(orderData.createdAt).toLocaleString();
-
-    doc.setFont("helvetica", "bold");
-    doc.text("BILLED TO:", 14, startY);
     doc.setFont("helvetica", "normal");
-    doc.text(orderData.userName || "Valued Customer", 14, startY + 6);
-    doc.text(orderData.address || "Mombasa, Kenya", 14, startY + 12);
-    doc.text(`Tel: ${orderData.customerPhone || orderData.mpesaNumber || "N/A"}`, 14, startY + 18);
+    doc.text(`Name: ${auth.currentUser.displayName || 'Customer'}`, 14, 56);
+    doc.text(`Phone: ${userPhone || 'N/A'}`, 14, 62);
 
+    // --- Statement Summary ---
     doc.setFont("helvetica", "bold");
-    doc.text("RECEIPT DETAILS:", 140, startY);
+    doc.text("SUMMARY:", 140, 50);
+    
     doc.setFont("helvetica", "normal");
-    doc.text(`Order Ref: #${orderData.deliveryCode || "PENDING"}`, 140, startY + 6);
-    doc.text(`Date: ${dateStr}`, 140, startY + 12);
-    doc.text(`Status: ${orderData.status}`, 140, startY + 18);
+    doc.text(`Total Orders: ${orders.length}`, 140, 56);
+    doc.text(`Wallet Balance: Ksh ${userWalletBalance.toLocaleString()}`, 140, 62);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 140, 68);
 
+    // --- The Table (Includes M-Pesa Code) ---
     doc.autoTable({
-        startY: startY + 30,
-        head: [['Description', 'Quantity', 'Unit Price', 'Total']],
-        body: [
-            [
-                orderData.item, 
-                orderData.quantity + " Trays", 
-                "Ksh " + orderData.unitPrice, 
-                "Ksh " + orderData.totalPrice.toLocaleString()
-            ]
-        ],
+        startY: 75,
+        head: [['Date', 'Order Ref', 'M-Pesa Code', 'Quantity', 'Amount']],
+        body: orders.map(o => {
+            const dateStr = o.createdAt.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString();
+            return [
+                dateStr,
+                o.deliveryCode || "N/A",
+                o.mpesaCode || "WALLET",
+                `${o.quantity} Trays`,
+                `Ksh ${o.totalPrice.toLocaleString()}`
+            ];
+        }),
         theme: 'grid',
         headStyles: { fillColor: darkColor, textColor: [255, 255, 255] },
-        styles: { fontSize: 11, cellPadding: 5 },
+        styles: { fontSize: 10, cellPadding: 5 },
+        alternateRowStyles: { fillColor: [250, 250, 250] }
     });
 
-    const finalY = doc.lastAutoTable.finalY + 10;
-    
-    doc.setFontSize(12);
-    doc.text(`Subtotal:`, 130, finalY);
-    doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY);
-    
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text(`TOTAL PAID:`, 130, finalY + 10);
-    doc.setTextColor(46, 125, 50); 
-    doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY + 10);
+    // --- Save or Share Logic ---
+    const fileName = `Statement_EggMaster_${auth.currentUser.uid.substring(0,5)}.pdf`;
 
-    doc.setTextColor(...darkColor);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    
-    doc.setDrawColor(200, 200, 200);
-    doc.roundedRect(14, finalY + 25, 180, 20, 3, 3, 'S');
-    doc.text(`Payment Method: M-Pesa / Wallet`, 20, finalY + 33);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Transaction Code: ${orderData.mpesaCode || "N/A"}`, 20, finalY + 40);
-
-    doc.setFontSize(9);
-    doc.setTextColor(100, 100, 100);
-    doc.text("Thank you for your business!", 105, 280, { align: "center" });
-    doc.text("For support call: 0745 862 002", 105, 285, { align: "center" });
-
-    doc.save(`Receipt_EggMaster_${orderData.deliveryCode || "Order"}.pdf`);
+    if (action === 'download') {
+        doc.save(fileName);
+    } else if (action === 'share') {
+        const pdfBlob = doc.output('blob');
+        const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({ files: [file], title: 'Account Statement' });
+            } catch (err) {
+                console.log("Share cancelled or failed", err);
+            }
+        } else {
+            alert("Sharing not supported on this device. Downloading instead.");
+            doc.save(fileName);
+        }
+    }
 };
 
-window.ordersDataMap = {};
 
 // --- STYLED PHONE MODAL LOGIC ---
 
