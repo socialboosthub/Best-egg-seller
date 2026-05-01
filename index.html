@@ -315,6 +315,28 @@
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </div>
 
+            <div id="topUpHistory" class="top-up-container" style="display: none; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 20px;">
+    <h4>Top-Up Details</h4>
+    <p><strong>M-Pesa Code:</strong> <span id="topUpMpesaCode"></span></p>
+    <p><strong>Time:</strong> <span id="topUpTime"></span></p>
+    <p><strong>Amount:</strong> <span id="topUpAmount"></span></p>
+</div>
+
+<div id="statementContainer">
+    <table class="statement-table" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 8px; border: 1px solid #ddd;"><strong>M-Pesa / Wallet Code</strong></td>
+            <td id="transactionCode" style="padding: 8px; border: 1px solid #ddd;"></td>
+        </tr>
+    </table>
+</div>
+
+<div id="actionButtons" class="button-group" style="display: none; margin-top: 20px;">
+    <button id="shareBtn" class="btn-share">Share</button>
+    <button id="exportBtn" class="btn-export">Export</button>
+</div>
+
+
         </div>
         <div class="settings-section">
             <div class="settings-header">App Preferences</div>
