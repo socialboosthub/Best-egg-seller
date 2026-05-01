@@ -949,8 +949,6 @@ window.submitPhoneNumber = async () => {
     }
 };
 
-};
-
 // --- NEW ACCOUNT STATEMENT LOGIC ---
 
 window.generateStatementPDF = async () => {
