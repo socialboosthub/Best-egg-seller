@@ -306,50 +306,48 @@
                 </div>
                 <i class="fa-solid fa-chevron-right arrow"></i>
             </div>
-                        <div class="setting-item clickable" onclick="window.generateStatementPDF()">
-                <div class="icon-wrap color-red"><i class="fa-solid fa-file-invoice"></i></div>
-                <div class="text">
-                    <div>Account Statements</div>
-                    <small>View, Download or Share PDF</small>
-                </div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </div>
 
-            <div id="topUpHistory" class="top-up-container" style="display: none; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 20px;">
-    <h4>Top-Up Details</h4>
-    <p><strong>M-Pesa Code:</strong> <span id="topUpMpesaCode"></span></p>
-    <p><strong>Time:</strong> <span id="topUpTime"></span></p>
-    <p><strong>Amount:</strong> <span id="topUpAmount"></span></p>
-</div>
+<div id="statements" class="page">
+    <div class="official-header" style="margin: 20px 24px;">
+        <h2>Account Statement</h2>
+        <small>Official Transaction Record</small>
+    </div>
 
-<div id="topUpHistory" style="display: none; background: #FFF8E1; border: 1px solid #FFB300; padding: 15px; border-radius: 12px; margin: 15px;">
-    <h4 style="color: #E65100; margin-bottom: 5px;"><i class="fa-solid fa-arrow-up-from-bracket"></i> Latest Top-Up</h4>
-    <p style="font-size: 13px; margin: 2px 0;"><strong>Code:</strong> <span id="topUpMpesaCode"></span></p>
-    <p style="font-size: 13px; margin: 2px 0;"><strong>Time:</strong> <span id="topUpTime"></span></p>
-    <p style="font-size: 13px; margin: 2px 0;"><strong>Amount:</strong> <span id="topUpAmount"></span></p>
-</div>
+    <div class="statement-dashboard">
+        <div class="summary-box">
+            <small>Total Orders</small>
+            <div class="amount" id="statTotalOrders">0</div>
+        </div>
+        <div class="summary-box">
+            <small>Wallet Balance</small>
+            <div class="amount" id="statWalletBal">Ksh 0</div>
+        </div>
+    </div>
 
-<div id="statementPreviewArea" style="display: none; padding: 15px;">
-    <h3 style="margin-bottom: 10px;">Account Statement Preview</h3>
-    <table style="width: 100%; border-collapse: collapse; font-size: 12px; background: white; border: 1px solid #ddd;">
-        <thead style="background: #eee;">
-            <tr>
-                <th style="border: 1px solid #ddd; padding: 8px;">Date</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Details</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Code/Wallet</th>
-                <th style="border: 1px solid #ddd; padding: 8px;">Amount</th>
-            </tr>
-        </thead>
-        <tbody id="statementTableBody">
-            </tbody>
-    </table>
+    <div class="statement-container">
+        <table class="statement-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Code</th>
+                    <th>Qty</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody id="statementTableBody">
+                </tbody>
+        </table>
+    </div>
 
-    <div id="actionButtons" style="display: flex; gap: 10px; margin-top: 20px;">
-        <button id="shareBtn" class="save-btn" style="flex:1; background: #2196F3;"><i class="fa-solid fa-share-nodes"></i> Share PDF</button>
-        <button id="exportBtn" class="save-btn" style="flex:1; background: #4CAF50;"><i class="fa-solid fa-file-export"></i> Export (Download)</button>
+    <div class="statement-actions">
+        <button class="btn-export-pdf" onclick="processAndHandlePDF(window.ordersDataMap, 'download')">
+            <i class="fa-solid fa-file-pdf"></i> Download PDF
+        </button>
+        <button class="btn-share-statement" onclick="processAndHandlePDF(window.ordersDataMap, 'share')">
+            <i class="fa-solid fa-share-nodes"></i>
+        </button>
     </div>
 </div>
-
 
 
         </div>
