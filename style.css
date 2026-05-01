@@ -1633,61 +1633,44 @@ body.dark .modal-content .cancel-btn {
 }
 
 /* =========================================
-   DARK MODE FIXES FOR STATEMENT AREA
+   CLEAN DARK MODE STATEMENT FIX
    ========================================= */
 
-/* Fix summary box text */
-[data-theme="dark"] .statement-dashboard .summary-box {
-    background: var(--card);
-    border-color: var(--border);
-}
-
-[data-theme="dark"] .summary-box .amount {
-    color: #ffffff !important; /* Forces the money amount to be bright white */
-}
-
-[data-theme="dark"] .summary-box small {
-    color: #9a9fa5 !important;
-}
-
-/* Fix table headers and rows */
 [data-theme="dark"] .statement-container {
-    background: var(--card);
-    border-color: var(--border);
+    background: #1a1d1f !important;
+    border-color: #272b30 !important;
 }
 
+/* Force the Table Headers to be visible */
 [data-theme="dark"] .statement-table th {
-    background: #272b30 !important; 
-    color: #cccccc !important; 
+    background: #272b30 !important;
+    color: #9a9fa5 !important;
     border-bottom: 2px solid #3a3f45 !important;
 }
 
+/* Force the Table Data (The words) to be Bright White */
 [data-theme="dark"] .statement-table td {
-    color: #efefef !important; /* Ensure transaction details are visible */
-    border-bottom: 1px solid var(--border);
+    color: #ffffff !important; 
+    border-bottom: 1px solid #272b30 !important;
 }
 
-/* Fix Status Pills for Dark Mode (Makes them readable instead of pale pastels) */
+/* Fix the Summary Box Text */
+[data-theme="dark"] .summary-box {
+    background: #1a1d1f !important;
+    border: 1px solid #272b30 !important;
+}
+
+[data-theme="dark"] .summary-box .amount {
+    color: #ffffff !important;
+}
+
+/* Ensure the Status Pills "Pop" */
 [data-theme="dark"] .status-paid {
-    background: rgba(76, 175, 80, 0.15) !important;
-    color: #81c784 !important; /* Bright green text */
+    background: rgba(76, 175, 80, 0.2) !important;
+    color: #4caf50 !important;
 }
 
 [data-theme="dark"] .status-wallet {
-    background: rgba(33, 150, 243, 0.15) !important;
-    color: #64b5f6 !important; /* Bright blue text */
-}
-
-/* Fix empty state text and icons */
-[data-theme="dark"] .no-data {
-    color: #9a9fa5;
-}
-
-[data-theme="dark"] .no-data i {
-    color: #3f444a;
-}
-
-/* Fix PDF/Preview Header Text */
-[data-theme="dark"] .official-header h2 {
-    color: #ffffff !important;
+    background: rgba(33, 150, 243, 0.2) !important;
+    color: #2196f3 !important;
 }
