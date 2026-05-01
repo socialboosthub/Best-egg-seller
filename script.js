@@ -1099,3 +1099,105 @@ async function processAndHandlePDF(orders, action) {
     }
 }
 
+// --- PDF GENERATOR (RECEIPTS) ---
+window.generateReceiptPDF = (orderData) => {
+    // 1. Check if jspdf is loaded properly
+    if (!window.jspdf) {
+        alert("PDF library is still loading or missing. Please refresh and try again.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const primaryColor = [255, 179, 0]; 
+    const darkColor = [26, 29, 31];     
+
+    // Header Background
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, 210, 40, 'F');
+
+    // Header Text
+    doc.setFontSize(22);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.text("EggMaster Wholesale", 105, 20, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Official Payment Receipt", 105, 30, { align: "center" });
+
+    // Billing Details
+    doc.setTextColor(...darkColor);
+    doc.setFontSize(10);
+    
+    const startY = 55;
+    const dateStr = orderData.createdAt.toDate ? orderData.createdAt.toDate().toLocaleString() : new Date(orderData.createdAt).toLocaleString();
+
+    doc.setFont("helvetica", "bold");
+    doc.text("BILLED TO:", 14, startY);
+    doc.setFont("helvetica", "normal");
+    doc.text(orderData.userName || "Valued Customer", 14, startY + 6);
+    doc.text(orderData.address || "Mombasa, Kenya", 14, startY + 12);
+    doc.text(`Tel: ${orderData.customerPhone || orderData.mpesaNumber || "N/A"}`, 14, startY + 18);
+
+    // Receipt Summary
+    doc.setFont("helvetica", "bold");
+    doc.text("RECEIPT DETAILS:", 140, startY);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Order Ref: #${orderData.deliveryCode || "PENDING"}`, 140, startY + 6);
+    doc.text(`Date: ${dateStr}`, 140, startY + 12);
+    doc.text(`Status: ${orderData.status}`, 140, startY + 18);
+
+    // Items Table
+    doc.autoTable({
+        startY: startY + 30,
+        head: [['Description', 'Quantity', 'Unit Price', 'Total']],
+        body: [
+            [
+                orderData.item, 
+                orderData.quantity + " Trays", 
+                "Ksh " + orderData.unitPrice, 
+                "Ksh " + orderData.totalPrice.toLocaleString()
+            ]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: darkColor, textColor: [255, 255, 255] },
+        styles: { fontSize: 11, cellPadding: 5 },
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 10;
+    
+    // Totals
+    doc.setFontSize(12);
+    doc.text(`Subtotal:`, 140, finalY);
+    doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY);
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`TOTAL PAID:`, 140, finalY + 10);
+    doc.setTextColor(46, 125, 50); 
+    doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY + 10);
+
+    // Payment Box
+    doc.setTextColor(...darkColor);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    
+    doc.setDrawColor(200, 200, 200);
+    doc.roundedRect(14, finalY + 25, 180, 20, 3, 3, 'S');
+    doc.text(`Payment Method: M-Pesa / Wallet`, 20, finalY + 33);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Transaction Code: ${orderData.mpesaCode || "N/A"}`, 20, finalY + 40);
+
+    // Footer
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Thank you for your business!", 105, 280, { align: "center" });
+    doc.text("For support call: 0700 000 000", 105, 285, { align: "center" });
+
+    // Trigger Download
+    doc.save(`Receipt_EggMaster_${orderData.deliveryCode || "Order"}.pdf`);
+};
+
+
