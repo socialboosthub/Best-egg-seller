@@ -1476,3 +1476,159 @@ body.dark .modal-content .cancel-btn {
     /* Add your specific button sizing and border-radius here */
 }
 
+/* =========================================
+   10. ACCOUNT STATEMENT PAGE STYLES
+   ========================================= */
+
+/* Statement Summary Dashboard */
+.statement-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 24px;
+    margin-bottom: 20px;
+}
+
+.summary-box {
+    background: var(--card);
+    padding: 15px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+}
+
+.summary-box small {
+    display: block;
+    font-size: 11px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.summary-box .amount {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* The Official Table Style */
+.statement-container {
+    margin: 0 20px;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden; /* Keeps table corners rounded */
+    box-shadow: var(--shadow-soft);
+}
+
+.statement-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.statement-table th {
+    background: var(--bg);
+    color: var(--text-light);
+    text-align: left;
+    padding: 12px 15px;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    text-transform: uppercase;
+    font-size: 10px;
+}
+
+.statement-table td {
+    padding: 14px 15px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+/* Status Badges in Table */
+.status-pill {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-paid { background: var(--green); color: var(--green-text); }
+.status-wallet { background: var(--blue); color: var(--blue-text); }
+
+/* Statement Action Buttons */
+.statement-actions {
+    display: flex;
+    gap: 10px;
+    padding: 20px 24px;
+}
+
+.btn-export-pdf {
+    flex: 1;
+    background: var(--primary);
+    color: #000;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.btn-share-statement {
+    width: 50px;
+    background: var(--bg);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* Dark Mode Fine-Tuning for Table */
+[data-theme="dark"] .statement-table th {
+    background: #272b30;
+    color: #9a9fa5;
+}
+
+[data-theme="dark"] .summary-box {
+    background: #1a1d1f;
+}
+
+/* Empty State */
+.no-data {
+    text-align: center;
+    padding: 40px 20px;
+}
+.no-data i {
+    font-size: 50px;
+    color: var(--border);
+    margin-bottom: 15px;
+}
+
+/* =========================================
+   11. PDF PREVIEW / PRINT AREA (HIDDEN)
+   ========================================= */
+/* This area is only used to format the logic before PDF generation */
+#statementPreviewArea {
+    display: none; /* Keep hidden on main screens */
+    margin-top: 20px;
+}
+
+.official-header {
+    border-left: 5px solid var(--primary);
+    padding-left: 15px;
+    margin-bottom: 20px;
+}
+
+.official-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text-main);
+}
+
