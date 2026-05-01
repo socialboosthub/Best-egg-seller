@@ -1458,3 +1458,9 @@ body.dark .modal-content .cancel-btn {
     justify-content: center;
 }
 
+.color-red {
+  background: var(--red);
+  color: var(--red-text);
+}
+
+
