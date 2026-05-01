@@ -1788,3 +1788,50 @@ body.dark .statement-table th {
 body.dark .statement-container {
     background-color: #1a1d1f !important;
 }
+
+.pdf-notif {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card-bg);
+    color: var(--text-color);
+    padding: 14px 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+    min-width: 220px;
+}
+
+#pdfNotifText {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#pdfNotifActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.notif-btn {
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.notif-btn.cancel {
+    background: transparent;
+    color: var(--text-color);
+}
+
+.notif-btn.view {
+    background: #FFB300;
+    color: black;
+    font-weight: 600;
+}
