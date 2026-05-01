@@ -646,7 +646,7 @@ body {
   display: flex;
   align-items: center;
   padding: 15px 20px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: none;
 }
 .setting-item:last-child {
   border-bottom: none;
