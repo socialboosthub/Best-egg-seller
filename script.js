@@ -1099,3 +1099,17 @@ async function processAndHandlePDF(orders, action) {
         }
     }
 }
+function downloadReceipt() {
+    alert("Step 1: Button clicked!"); 
+    
+    try {
+        // Your logic here...
+        alert("Step 2: Data prepared!");
+        
+        // The download logic...
+        alert("Step 3: Attempting download...");
+    } catch (error) {
+        alert("Error found: " + error.message);
+    }
+}
+
