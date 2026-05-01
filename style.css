@@ -1708,3 +1708,36 @@ body.dark .modal-content .cancel-btn {
 [data-theme="dark"] .no-data {
     background-color: #1a1d1f !important;
 }
+
+/* =========================================
+   FINAL "WHITE BAR" REMOVAL 
+   ========================================= */
+
+[data-theme="dark"] .page-title {
+    background-color: var(--bg) !important;
+    color: #ffffff !important;
+    margin: 0 !important; /* Removes any gap */
+    padding: 20px 24px !important;
+}
+
+/* This targets the white bar behind the Back Arrow and Title */
+[data-theme="dark"] .statement-header, 
+[data-theme="dark"] div:has(> .page-title) {
+    background-color: var(--bg) !important;
+}
+
+/* This targets the white bar in the Table Headers */
+[data-theme="dark"] .statement-table thead,
+[data-theme="dark"] .statement-table tr:first-child,
+[data-theme="dark"] .statement-table th {
+    background-color: #272b30 !important; /* Darker grey header */
+    color: #9a9fa5 !important;
+    border: none !important;
+}
+
+/* Ensures the entire statement container stays dark */
+[data-theme="dark"] .statement-container {
+    background-color: #1a1d1f !important;
+    border: 1px solid #272b30 !important;
+}
+
