@@ -893,24 +893,27 @@ window.viewStatementPage = () => {
 
 // 2. Generates the Professional PDF with M-Pesa Codes included
 
-   window.processAndHandlePDF = async (action) => {
-    const notif = document.getElementById('pdfNotif');
-    const text = document.getElementById('pdfNotifText');
 
+         window.processAndHandlePDF = async (action) => {
     const orders = Object.values(window.ordersDataMap || []);
-
     if (!orders.length) return alert("⚠️ No order history found");
-
-    notif.style.display = "flex";
-    text.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...`;
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    doc.text("EggMaster Statement", 20, 20);
+    const primaryColor = [255, 179, 0];
+    const darkColor = [26, 29, 31];
 
+    // Header
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.text("EggMaster Statement", 105, 20, { align: "center" });
+
+    // Table
     doc.autoTable({
-        startY: 30,
+        startY: 50,
         head: [['Date', 'Ref', 'Code', 'Qty', 'Amount']],
         body: orders.map(o => [
             o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString(),
@@ -923,19 +926,19 @@ window.viewStatementPage = () => {
 
     const fileName = "EggMaster_Statement.pdf";
 
-    const blob = doc.output('blob');
+    if (action === "download") {
+        doc.save(fileName);
+    } else {
+        const blob = doc.output("blob");
+        const file = new File([blob], fileName, { type: "application/pdf" });
 
-    setTimeout(() => {
-        text.innerHTML = "PDF Ready ✅";
-
-        const actions = document.getElementById('pdfNotifActions');
-        actions.innerHTML = `
-            <button onclick="document.getElementById('pdfNotif').style.display='none'">Close</button>
-            <button id="downloadPdfBtn">Download</button>
-        `;
-
-        document.getElementById('downloadPdfBtn').onclick = () => {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: "Statement" });
+        } else {
             doc.save(fileName);
+        }
+    }
+};
 
             text.innerHTML = "Downloaded successfully ✅";
 
