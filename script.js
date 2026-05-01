@@ -947,59 +947,7 @@ window.viewStatementPage = () => {
     }, 1200);
 };
    
-    // --- Header Styling ---
-    const primaryColor = [255, 179, 0]; // Your Yellow Theme
-    const darkColor = [26, 29, 31];
 
-    doc.setFillColor(...primaryColor);
-    doc.rect(0, 0, 210, 40, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.text("EggMaster Wholesale", 105, 20, { align: "center" });
-    
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text("Official Account Statement", 105, 30, { align: "center" });
-
-    // --- Customer Details ---
-    doc.setTextColor(...darkColor);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("CUSTOMER DETAILS:", 14, 50);
-    
-    doc.setFont("helvetica", "normal");
-    doc.text(`Name: ${auth.currentUser.displayName || 'Customer'}`, 14, 56);
-    doc.text(`Phone: ${userPhone || 'N/A'}`, 14, 62);
-
-    // --- Statement Summary ---
-    doc.setFont("helvetica", "bold");
-    doc.text("SUMMARY:", 140, 50);
-    
-    doc.setFont("helvetica", "normal");
-    doc.text(`Total Orders: ${orders.length}`, 140, 56);
-    doc.text(`Wallet Balance: Ksh ${userWalletBalance.toLocaleString()}`, 140, 62);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 140, 68);
-
-    // --- The Table (Includes M-Pesa Code) ---
-    doc.autoTable({
-        startY: 75,
-        head: [['Date', 'Order Ref', 'M-Pesa Code', 'Quantity', 'Amount']],
-        body: orders.map(o => {
-            const dateStr = o.createdAt.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString();
-            return [
-                dateStr,
-                o.deliveryCode || "N/A",
-                o.mpesaCode || "WALLET",
-                `${o.quantity} Trays`,
-                `Ksh ${o.totalPrice.toLocaleString()}`
-            ];
-        }),
-        theme: 'grid',
-        headStyles: { fillColor: darkColor, textColor: [255, 255, 255] },
-        styles: { fontSize: 10, cellPadding: 5 },
-        alternateRowStyles: { fillColor: [250, 250, 250] }
-    });
 
     // --- Save or Share Logic ---
     const fileName = `Statement_EggMaster_${auth.currentUser.uid.substring(0,5)}.pdf`;
