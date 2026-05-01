@@ -814,39 +814,6 @@ if(heroBtn) heroBtn.onclick = () => window.showPage('shop', document.querySelect
 
 window.logoutUser = () => signOut(auth).then(() => location.reload());
 
-function showPDFNotification(status, fileBlob = null) {
-    const notif = document.getElementById('pdfNotif');
-    const text = document.getElementById('pdfNotifText');
-    const actions = document.getElementById('pdfNotifActions');
-
-    notif.style.display = 'flex';
-    actions.innerHTML = '';
-
-    if (status === 'downloading') {
-        text.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...`;
-    }
-
-    if (status === 'done') {
-        text.innerHTML = `<i class="fa-solid fa-circle-check"></i> PDF Ready`;
-
-        const cancelBtn = document.createElement('button');
-        cancelBtn.innerText = "Cancel";
-        cancelBtn.className = "notif-btn cancel";
-        cancelBtn.onclick = () => notif.style.display = 'none';
-
-        const viewBtn = document.createElement('button');
-        viewBtn.innerText = "View PDF";
-        viewBtn.className = "notif-btn view";
-        viewBtn.onclick = () => {
-            const url = URL.createObjectURL(fileBlob);
-            window.open(url);
-        };
-
-        actions.appendChild(cancelBtn);
-        actions.appendChild(viewBtn);
-    }
-}
-
 // PDF GENERATOR
 
    // --- NEW ACCOUNT STATEMENT LOGIC ---
@@ -892,48 +859,92 @@ window.viewStatementPage = () => {
 
 
 // 2. Generates the Professional PDF with M-Pesa Codes included
+window.processAndHandlePDF = async (action) => {
+    const orders = Object.values(window.ordersDataMap || {}).sort((a, b) => {
+        const dateA = a.createdAt.seconds || a.createdAt;
+        const dateB = b.createdAt.seconds || b.createdAt;
+        return dateB - dateA;
+    });
 
-
-         window.processAndHandlePDF = async (action) => {
-    const orders = Object.values(window.ordersDataMap || []);
-    if (!orders.length) return alert("⚠️ No order history found");
+    if (orders.length === 0) return alert("⚠️ No order history found to export.");
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    const primaryColor = [255, 179, 0];
+    // --- Header Styling ---
+    const primaryColor = [255, 179, 0]; // Your Yellow Theme
     const darkColor = [26, 29, 31];
 
-    // Header
     doc.setFillColor(...primaryColor);
     doc.rect(0, 0, 210, 40, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(18);
-    doc.text("EggMaster Statement", 105, 20, { align: "center" });
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("EggMaster Wholesale", 105, 20, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text("Official Account Statement", 105, 30, { align: "center" });
 
-    // Table
-  
+    // --- Customer Details ---
+    doc.setTextColor(...darkColor);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("CUSTOMER DETAILS:", 14, 50);
+    
+    doc.setFont("helvetica", "normal");
+    doc.text(`Name: ${auth.currentUser.displayName || 'Customer'}`, 14, 56);
+    doc.text(`Phone: ${userPhone || 'N/A'}`, 14, 62);
 
-    const fileName = "EggMaster_Statement.pdf";
+    // --- Statement Summary ---
+    doc.setFont("helvetica", "bold");
+    doc.text("SUMMARY:", 140, 50);
+    
+    doc.setFont("helvetica", "normal");
+    doc.text(`Total Orders: ${orders.length}`, 140, 56);
+    doc.text(`Wallet Balance: Ksh ${userWalletBalance.toLocaleString()}`, 140, 62);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 140, 68);
 
-    if (action === "download") {
+    // --- The Table (Includes M-Pesa Code) ---
+    doc.autoTable({
+        startY: 75,
+        head: [['Date', 'Order Ref', 'M-Pesa Code', 'Quantity', 'Amount']],
+        body: orders.map(o => {
+            const dateStr = o.createdAt.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString();
+            return [
+                dateStr,
+                o.deliveryCode || "N/A",
+                o.mpesaCode || "WALLET",
+                `${o.quantity} Trays`,
+                `Ksh ${o.totalPrice.toLocaleString()}`
+            ];
+        }),
+        theme: 'grid',
+        headStyles: { fillColor: darkColor, textColor: [255, 255, 255] },
+        styles: { fontSize: 10, cellPadding: 5 },
+        alternateRowStyles: { fillColor: [250, 250, 250] }
+    });
+
+    // --- Save or Share Logic ---
+    const fileName = `Statement_EggMaster_${auth.currentUser.uid.substring(0,5)}.pdf`;
+
+    if (action === 'download') {
         doc.save(fileName);
-    } else {
-        const blob = doc.output("blob");
-        const file = new File([blob], fileName, { type: "application/pdf" });
-
+    } else if (action === 'share') {
+        const pdfBlob = doc.output('blob');
+        const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], title: "Statement" });
+            try {
+                await navigator.share({ files: [file], title: 'Account Statement' });
+            } catch (err) {
+                console.log("Share cancelled or failed", err);
+            }
         } else {
+            alert("Sharing not supported on this device. Downloading instead.");
             doc.save(fileName);
         }
     }
 };
-
-            
-
-
-    // --- Save or Share Logic ---
 
 
 // --- STYLED PHONE MODAL LOGIC ---
@@ -985,7 +996,14 @@ window.submitPhoneNumber = async () => {
 
 // --- NEW ACCOUNT STATEMENT LOGIC ---
 
+window.generateStatementPDF = async () => {
+    if (!auth.currentUser) return alert("Please login to view statements.");
 
+    const orders = Object.values(window.ordersDataMap).sort((a, b) => {
+        const dateA = a.createdAt.seconds || a.createdAt;
+        const dateB = b.createdAt.seconds || b.createdAt;
+        return dateB - dateA;
+    });
 
     if (orders.length === 0) return alert("⚠️ No order history found.");
 
@@ -996,7 +1014,7 @@ window.submitPhoneNumber = async () => {
             where("usedBy", "==", auth.currentUser.uid),
             where("purpose", "==", "Wallet Top Up")
         );
-        // Note: If using multiple, use getDocs
+        const mpesaSnap = await getDoc(mpesaQuery); // Note: If using multiple, use getDocs
         
         // For simplicity, we look for the last top-up in your existing payments
         // If you don't have a specific top-up collection, we just show the section if they have balance
@@ -1045,7 +1063,9 @@ document.getElementById('shareBtn').onclick = () => {
 };
 
 // Internal Helper to actually build the PDF when buttons are clicked
-
+async function processAndHandlePDF(orders, action) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
     
     // ... (Keep your existing PDF styling logic here: Header, Colors, etc.) ...
     // Just ensure you add the "M-Pesa Code" column in doc.autoTable
@@ -1066,13 +1086,7 @@ document.getElementById('shareBtn').onclick = () => {
     const fileName = `Statement_${auth.currentUser.uid.substring(0,5)}.pdf`;
 
     if (action === 'download') {
-    const pdfBlob = doc.output('blob');
-
-    setTimeout(() => {
-        showPDFNotification('done', pdfBlob);
-    }, 1200);
-
-    doc.save(fileName);
+        doc.save(fileName);
     } else {
         const pdfBlob = doc.output('blob');
         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
@@ -1084,115 +1098,4 @@ document.getElementById('shareBtn').onclick = () => {
         }
     }
 }
-
-// ==========================================
-// ✅ PDF NOTIFICATION UI
-// ==========================================
-function showPDFNotification(status, fileBlob = null) {
-    const notif = document.getElementById('pdfNotif');
-    const text = document.getElementById('pdfNotifText');
-    const actions = document.getElementById('pdfNotifActions');
-
-    if (!notif || !text || !actions) return;
-
-    notif.style.display = 'flex';
-    actions.innerHTML = '';
-
-    if (status === 'downloading') {
-        text.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...`;
-    }
-
-    if (status === 'done') {
-        text.innerHTML = `<i class="fa-solid fa-circle-check"></i> PDF Ready`;
-
-        const cancelBtn = document.createElement('button');
-        cancelBtn.innerText = "Cancel";
-        cancelBtn.className = "notif-btn cancel";
-        cancelBtn.onclick = () => notif.style.display = 'none';
-
-        const viewBtn = document.createElement('button');
-        viewBtn.innerText = "View PDF";
-        viewBtn.className = "notif-btn view";
-        viewBtn.onclick = () => {
-            const url = URL.createObjectURL(fileBlob);
-            window.open(url);
-        };
-
-        actions.appendChild(cancelBtn);
-        actions.appendChild(viewBtn);
-    }
-}
-
-
-// ==========================================
-// ✅ MAIN PDF GENERATOR (ONLY ONE)
-// ==========================================
-window.processAndHandlePDF = async (action) => {
-    const orders = Object.values(window.ordersDataMap || []);
-    if (!orders.length) return alert("⚠️ No order history found");
-
-    showPDFNotification('downloading');
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    const primaryColor = [255, 179, 0];
-
-    // HEADER
-    doc.setFillColor(...primaryColor);
-    doc.rect(0, 0, 210, 40, 'F');
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(18);
-    doc.text("EggMaster Statement", 105, 20, { align: "center" });
-
-    // TABLE
-    doc.autoTable({
-        startY: 50,
-        head: [['Date', 'Ref', 'Code', 'Qty', 'Amount']],
-        body: orders.map(o => [
-            o.createdAt?.toDate
-                ? o.createdAt.toDate().toLocaleDateString()
-                : new Date(o.createdAt).toLocaleDateString(),
-            o.deliveryCode || "N/A",
-            o.mpesaCode || "WALLET",
-            o.quantity,
-            "Ksh " + o.totalPrice
-        ])
-    });
-
-    const fileName = "EggMaster_Statement.pdf";
-
-    if (action === "download") {
-        const blob = doc.output("blob");
-
-        setTimeout(() => {
-            showPDFNotification('done', blob);
-        }, 1000);
-
-        doc.save(fileName);
-
-    } else if (action === "share") {
-        const blob = doc.output("blob");
-        const file = new File([blob], fileName, { type: "application/pdf" });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], title: "Statement" });
-        } else {
-            doc.save(fileName);
-        }
-    }
-};
-
-
-// ==========================================
-// ✅ BUTTON HANDLERS
-// ==========================================
-document.getElementById('exportBtn').onclick = () => {
-    window.processAndHandlePDF('download');
-};
-
-document.getElementById('shareBtn').onclick = () => {
-    window.processAndHandlePDF('share');
-};
 
