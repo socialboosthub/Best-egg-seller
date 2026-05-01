@@ -1070,3 +1070,52 @@ window.generateStatementPDF = async () => {
 };
 
 
+// Example data variables (Replace with your actual backend data/variables)
+let hasToppedUp = true; 
+let topUpData = { code: "QWE1234567", time: "10:15 AM", amount: "Ksh 500" };
+let currentTransactionCode = "RTY9876543"; 
+
+// Function triggered when "Generate" is initially clicked
+function displayStatementPreview() {
+    // 1. Populate the Top-Up data if the user has a top-up history
+    if (hasToppedUp) {
+        document.getElementById('topUpMpesaCode').innerText = topUpData.code;
+        document.getElementById('topUpTime').innerText = topUpData.time;
+        document.getElementById('topUpAmount').innerText = topUpData.amount;
+        document.getElementById('topUpHistory').style.display = 'block';
+    }
+
+    // 2. Populate the M-Pesa/Wallet code for the main statement
+    document.getElementById('transactionCode').innerText = currentTransactionCode;
+
+    // 3. Make the action buttons visible below the statement
+    document.getElementById('actionButtons').style.display = 'flex'; 
+}
+
+// Export Button Logic (Download)
+document.getElementById('exportBtn').addEventListener('click', function() {
+    // Insert your PDF generation and download logic here
+    // (e.g., passing the 'statementContainer' to html2pdf or jsPDF)
+    console.log("Exporting statement as PDF...");
+});
+
+// Share Button Logic
+document.getElementById('shareBtn').addEventListener('click', async function() {
+    // Insert the share logic that was previously running automatically
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'Transaction Statement',
+                text: 'Here is the requested statement.',
+                // Add the url or the generated PDF file blob here
+            });
+            console.log('Shared successfully');
+        } catch (error) {
+            console.error('Error sharing:', error);
+        }
+    } else {
+        alert('Web Share API is not supported in this browser.');
+    }
+});
+
+
