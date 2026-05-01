@@ -1650,7 +1650,7 @@ body.dark .modal-content .cancel-btn {
 
 /* Force the Table Data (The words) to be Bright White */
 [data-theme="dark"] .statement-table td {
-    color: black !important; 
+    color: #ffffff !important; 
     border-bottom: 1px solid #272b30 !important;
 }
 
