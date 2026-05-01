@@ -1099,16 +1099,16 @@ async function processAndHandlePDF(orders, action) {
     }
 }
 
- window.generateReceiptPDF = (order) => {
+window.generateReceiptPDF = (order) => {
     if (!order) return alert("❌ Order data not found.");
 
-    const { jsPDF } = window.jspdf;
+    // ✅ Correct way to access jsPDF
+    const jsPDF = window.jspdf.jsPDF;
     const doc = new jsPDF();
 
     const primaryColor = [255, 179, 0];
     const darkColor = [26, 29, 31];
 
-    // Header
     doc.setFillColor(...primaryColor);
     doc.rect(0, 0, 210, 30, 'F');
 
@@ -1116,7 +1116,6 @@ async function processAndHandlePDF(orders, action) {
     doc.setFontSize(18);
     doc.text("EggMaster Receipt", 105, 18, { align: "center" });
 
-    // Body
     doc.setTextColor(...darkColor);
     doc.setFontSize(12);
 
@@ -1132,15 +1131,10 @@ async function processAndHandlePDF(orders, action) {
 
     doc.text(`Item: ${order.item}`, 14, y); y += 8;
     doc.text(`Quantity: ${order.quantity}`, 14, y); y += 8;
-    doc.text(`Unit Price: Ksh ${order.unitPrice}`, 14, y); y += 8;
     doc.text(`Total: Ksh ${order.totalPrice}`, 14, y); y += 8;
 
     doc.text(`M-Pesa Code: ${order.mpesaCode}`, 14, y); y += 8;
     doc.text(`Delivery Code: ${order.deliveryCode}`, 14, y); y += 8;
 
-    doc.text(`Location: ${order.address}`, 14, y); y += 8;
-
-    // Save
-    const fileName = `Receipt_${order.deliveryCode || "order"}.pdf`;
-    doc.save(fileName);
+    doc.save(`Receipt_${order.deliveryCode || "order"}.pdf`);
 };
