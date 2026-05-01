@@ -949,3 +949,124 @@ window.submitPhoneNumber = async () => {
     }
 };
 
+// --- ACCOUNT STATEMENT PDF GENERATOR ---
+window.generateStatementPDF = async () => {
+    if (!auth.currentUser) return alert("Please login to view statements.");
+
+    // 1. Gather all orders from the active listener map
+    const orders = Object.values(window.ordersDataMap).sort((a, b) => {
+        const dateA = a.createdAt.seconds || a.createdAt;
+        const dateB = b.createdAt.seconds || b.createdAt;
+        return dateB - dateA; // Sort Newest to Oldest
+    });
+
+    if (orders.length === 0) {
+        return alert("⚠️ You have no order history to generate a statement.");
+    }
+
+    // Show loading state on the button/screen temporarily
+    const btnText = event.currentTarget.querySelector('.text small');
+    const originalText = btnText.innerText;
+    btnText.innerText = "Generating PDF...";
+
+    setTimeout(() => {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const primaryColor = [255, 179, 0];
+            const darkColor = [26, 29, 31];
+
+            // Header Section
+            doc.setFillColor(...primaryColor);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setFontSize(22);
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.text("EggMaster Wholesale", 105, 20, { align: "center" });
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.text("Official Account Statement", 105, 30, { align: "center" });
+
+            // Customer Details
+            doc.setTextColor(...darkColor);
+            doc.setFontSize(10);
+            const startY = 55;
+            doc.setFont("helvetica", "bold");
+            doc.text("CUSTOMER DETAILS:", 14, startY);
+            doc.setFont("helvetica", "normal");
+            doc.text(auth.currentUser.displayName || "Valued Customer", 14, startY + 6);
+            doc.text(`Phone: ${userPhone || "N/A"}`, 14, startY + 12);
+            doc.text(`Address: ${userLocation?.address || "N/A"}`, 14, startY + 18);
+
+            // Calculate Totals & Build Table Data
+            let totalSpent = 0;
+            let totalTrays = 0;
+            const tableData = orders.map(o => {
+                const d = o.createdAt.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString();
+                totalSpent += o.totalPrice;
+                totalTrays += o.quantity;
+                return [
+                    d,
+                    o.deliveryCode || "N/A",
+                    `${o.quantity} Trays`,
+                    `Ksh ${o.totalPrice.toLocaleString()}`,
+                    o.status
+                ];
+            });
+
+            // Summary Stats
+            doc.setFont("helvetica", "bold");
+            doc.text("STATEMENT SUMMARY:", 140, startY);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Total Orders: ${orders.length}`, 140, startY + 6);
+            doc.text(`Total Trays: ${totalTrays}`, 140, startY + 12);
+            doc.text(`Total Spent: Ksh ${totalSpent.toLocaleString()}`, 140, startY + 18);
+
+            // Statement Table
+            doc.autoTable({
+                startY: startY + 30,
+                head: [['Date', 'Order Ref', 'Items', 'Amount', 'Status']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: { fillColor: darkColor, textColor: [255, 255, 255] },
+                styles: { fontSize: 10, cellPadding: 4 },
+                alternateRowStyles: { fillColor: [245, 245, 245] }
+            });
+
+            const finalY = doc.lastAutoTable.finalY + 15;
+            doc.setFontSize(9);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, finalY, { align: "center" });
+
+            // File Sharing / Downloading Logic
+            const fileName = `EggMaster_Statement_${new Date().getTime()}.pdf`;
+            const pdfBlob = doc.output('blob');
+
+            // Try to open native sharing menu (iOS/Android)
+            if (navigator.canShare && navigator.canShare({ files: [new File([pdfBlob], fileName, { type: 'application/pdf' })] })) {
+                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+                navigator.share({
+                    title: 'EggMaster Statement',
+                    text: 'Here is my EggMaster wholesale account statement.',
+                    files: [file]
+                }).catch((error) => {
+                    // If user cancels the share menu, default to direct download
+                    console.log("Sharing cancelled or failed, downloading instead.");
+                    doc.save(fileName);
+                });
+            } else {
+                // Desktop or unsupported browsers: Direct download
+                doc.save(fileName);
+            }
+
+        } catch (error) {
+            console.error("PDF Generation Error:", error);
+            alert("❌ Failed to generate statement.");
+        } finally {
+            // Restore button text
+            btnText.innerText = originalText;
+        }
+    }, 500); // slight delay to allow UI to update
+};
+
+
