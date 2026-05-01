@@ -1762,3 +1762,29 @@ body.dark .statement-container {
     background-color: #1a1d1f !important;
     border-color: #272b30 !important;
 }
+
+/* UNIVERSAL DARK FIX */
+[data-theme="dark"] .statement-table,
+[data-theme="dark"] .statement-table thead,
+[data-theme="dark"] .statement-table tr,
+[data-theme="dark"] .statement-table th,
+[data-theme="dark"] .statement-table td,
+body.dark .statement-table,
+body.dark .statement-table thead,
+body.dark .statement-table tr,
+body.dark .statement-table th,
+body.dark .statement-table td {
+    background-color: transparent !important;
+}
+
+/* Header */
+[data-theme="dark"] .statement-table th,
+body.dark .statement-table th {
+    background-color: #272b30 !important;
+}
+
+/* Container */
+[data-theme="dark"] .statement-container,
+body.dark .statement-container {
+    background-color: #1a1d1f !important;
+}
