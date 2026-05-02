@@ -819,44 +819,73 @@ window.logoutUser = () => signOut(auth).then(() => location.reload());
 
    // --- NEW ACCOUNT STATEMENT LOGIC ---
 
-// 1. Opens the page and fills the HTML table
 window.viewStatementPage = () => {
-    if (!auth.currentUser) return alert("Please login to view statements.");
+    try {
+        if (!auth.currentUser) return alert("Please login to view statements.");
 
-    // Get orders and sort by newest first
-    const orders = Object.values(window.ordersDataMap || {}).sort((a, b) => {
-        const dateA = a.createdAt.seconds || a.createdAt;
-        const dateB = b.createdAt.seconds || b.createdAt;
-        return dateB - dateA;
-    });
-
-    // Update Top Summary Boxes
-    document.getElementById('statTotalOrders').innerText = orders.length;
-    document.getElementById('statWalletBal').innerText = "Ksh " + userWalletBalance.toLocaleString();
-
-    // Fill the Table
-    const tableBody = document.getElementById('statementTableBody');
-    tableBody.innerHTML = ""; 
-
-    if (orders.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #888;">No order history found.</td></tr>`;
-    } else {
-        orders.forEach(o => {
-            const d = o.createdAt.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString();
-            tableBody.innerHTML += `
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 10px;">${d}</td>
-                    <td style="padding: 10px; font-weight: bold; color: #1976D2;">${o.mpesaCode || 'WALLET'}</td>
-                    <td style="padding: 10px;">${o.quantity}</td>
-                    <td style="padding: 10px;">Ksh ${o.totalPrice.toLocaleString()}</td>
-                </tr>
-            `;
+        // 1. Safely grab and sort the orders
+        const ordersMap = window.ordersDataMap || {};
+        const orders = Object.values(ordersMap).sort((a, b) => {
+            const timeA = a.createdAt?.seconds || (a.createdAt ? new Date(a.createdAt).getTime() / 1000 : 0);
+            const timeB = b.createdAt?.seconds || (b.createdAt ? new Date(b.createdAt).getTime() / 1000 : 0);
+            return timeB - timeA;
         });
-    }
 
-    // Show the page (hides others)
-    window.showPage('statements', null);
+        // 2. Safely update Wallet Balance (prevents crash if balance is missing)
+        const safeWalletBal = Number(userWalletBalance) || 0;
+        const statWalletBalEl = document.getElementById('statWalletBal');
+        if(statWalletBalEl) statWalletBalEl.innerText = "Ksh " + safeWalletBal.toLocaleString();
+
+        // 3. Update Total Orders
+        const statTotalOrdersEl = document.getElementById('statTotalOrders');
+        if(statTotalOrdersEl) statTotalOrdersEl.innerText = orders.length;
+
+        // 4. Fill the Table Safely
+        const tableBody = document.getElementById('statementTableBody');
+        if(tableBody) {
+            tableBody.innerHTML = ""; 
+
+            if (orders.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px; color: #888;">No order history found.</td></tr>`;
+            } else {
+                orders.forEach(o => {
+                    // Safe Date Parsing
+                    let d = "Unknown Date";
+                    if (o.createdAt) {
+                        try {
+                            d = o.createdAt.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString();
+                        } catch(err) { 
+                            d = "Invalid Date"; 
+                        }
+                    }
+                    
+                    // SAFE VALUES: This prevents the crash! If data is missing, it defaults to 0 or 'N/A'
+                    const safePrice = Number(o.totalPrice) || 0;
+                    const safeQty = o.quantity || 0;
+                    const safeCode = o.mpesaCode || 'WALLET';
+
+                    tableBody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 10px;">${d}</td>
+                            <td style="padding: 10px; font-weight: bold; color: #1976D2;">${safeCode}</td>
+                            <td style="padding: 10px;">${safeQty}</td>
+                            <td style="padding: 10px;">Ksh ${safePrice.toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        // 5. Finally, show the page
+        window.showPage('statements', null);
+
+    } catch (error) {
+        // If it ever crashes again, it will tell you exactly why instead of doing nothing
+        console.error("Statement Page Error:", error);
+        alert("Bro, an error occurred loading the statements. Press F12 and check the console for details.");
+    }
 };
+
 
 
 // 2. Generates the Professional PDF with M-Pesa Codes included
