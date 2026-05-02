@@ -1021,7 +1021,7 @@ cellPadding: 5 },
   });
 
   const finalY =
-doc.lastAutoTable ? doc.lastTable.finalY + 10 : startY + 65; // Adjusting for fallback just in case
+doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : startY + 65; // Adjusting for fallback just in case
 
   doc.setFontSize(12);
   doc.text("Subtotal:", 130,
