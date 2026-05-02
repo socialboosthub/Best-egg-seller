@@ -948,11 +948,13 @@ window.processAndHandlePDF = async (action) => {
 };
 
 // PDF GENERATOR
-window.generateReceiptPDF = (orderData) => {
+window.generateReceiptPDF =
+(orderData) => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  const primaryColor = [255, 179, 0];
+  const primaryColor = [255, 179,
+0];
   const darkColor = [26, 29, 31];
 
   doc.setFillColor(...primaryColor);
@@ -961,82 +963,103 @@ window.generateReceiptPDF = (orderData) => {
   doc.setFontSize(22);
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.text("EggMaster Wholesale", 105, 20, { align: "center" });
+  doc.text("EggMaster Wholesale",
+105, 20, { align: "center" });
 
   doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("helvetica",
+"normal");
   doc.text("Official Payment\nReceipt", 105, 30, { align: "center" });
 
   doc.setTextColor(...darkColor);
   doc.setFontSize(10);
 
   const startY = 55;
-  const dateStr = orderData.createdAt.toDate ? 
-      orderData.createdAt.toDate().toLocaleDateString() : 
-      new Date(orderData.createdAt).toLocaleDateString();
+  const dateStr = 
+  orderData.createdAt.toDate ?
+  orderData.createdAt.toDate().toLocaleDateString() : new Date(orderData.createdAt).toLocaleDateString();
 
   doc.setFont("helvetica", "bold");
   doc.text("BILLED TO:", 14, startY);
-  doc.setFont("helvetica", "normal");
-  doc.text(orderData.userName || "Valued Customer", 14, startY + 6);
-  doc.text(orderData.address || "Mombasa, Kenya", 14, startY + 12);
+  doc.setFont("helvetica",
+"normal");
+  doc.text(orderData.userName ||
+"Valued Customer", 14, startY + 6);
+  doc.text(orderData.address ||
+"Mombasa, Kenya", 14, startY + 12);
   doc.text(`Tel: ${orderData.customerPhone || orderData.mpesaNumber || "N/A"}`, 14, startY + 18);
 
   doc.setFont("helvetica", "bold");
-  doc.text("RECEIPT DETAILS:", 140, startY);
-  doc.setFont("helvetica", "normal");
+  doc.text("RECEIPT DETAILS:",
+140, startY);
+  doc.setFont("helvetica",
+"normal");
   doc.text(`Order Ref: #${orderData.deliveryCode || "PENDING"}`, 140, startY + 6);
   doc.text(`Date: ${dateStr}`, 140, startY + 12);
   doc.text(`Status: ${orderData.status}`, 140, startY + 18);
 
   doc.autoTable({
     startY: startY + 30,
-    head: [['Description', 'Quantity', 'Unit Price', 'Total']],
+    head: [['Description', 'Quantity',
+'Unit Price', 'Total']],
     body: [
       [
         orderData.item,
-        orderData.quantity + " Trays",
-        "Ksh " + orderData.unitPrice,
+        orderData.quantity + " " +
+"Trays",
+        "Ksh " +
+orderData.unitPrice,
         "Ksh " + orderData.totalPrice.toLocaleString()
       ]
     ],
     theme: 'grid',
-    headStyles: { fillColor: darkColor, textColor: [255, 255, 255] },
-    styles: { fontSize: 11, cellPadding: 5 },
+    headStyles: { fillColor:
+darkColor, textColor: [255, 255,
+255] },
+    styles: { fontSize: 11,
+cellPadding: 5 },
   });
 
-  // 🔥 FIX IS HERE: Changed doc.lastTable to doc.lastAutoTable 🔥
-  const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : startY + 65; 
+  const finalY =
+doc.lastAutoTable ? doc.lastTable.finalY + 10 : startY + 65; // Adjusting for fallback just in case
 
   doc.setFontSize(12);
-  doc.text("Subtotal:", 130, finalY);
-  doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY);
+  doc.text("Subtotal:", 130,
+finalY);
+  doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`,
+170, finalY);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text("TOTAL PAID:", 130, finalY + 10);
+  doc.text("TOTAL PAID:", 130,
+finalY + 10);
   doc.setTextColor(46, 125, 50);
   doc.text(`Ksh ${orderData.totalPrice.toLocaleString()}`, 170, finalY + 10);
 
   doc.setTextColor(...darkColor);
   doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("helvetica",
+"normal");
 
   doc.setDrawColor(200, 200, 200);
-  doc.roundedRect(14, finalY + 25, 180, 20, 3, 3, 'S');
-  doc.text(`Payment Method:\nM-Pesa / Wallet`, 20, finalY + 33);
+  doc.roundedRect(14, finalY + 25,
+180, 20, 3, 3, 'S');
+  doc.text(`Payment Method:\nM-Pesa / Wallet`, 20, finalY +
+33);
   doc.setFont("helvetica", "bold");
   doc.text(`Transaction Code: ${orderData.mpesaCode || "N/A"}`, 20, finalY + 40);
 
   doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
-  doc.text("Thank you for your\nbusiness!", 105, 280, { align: "center" });
-  doc.text("For support call:\n0745 862 002", 105, 285, { align: "center" });
+  doc.text("Thank you for your\nbusiness!", 105, 280, { align:
+"center" });
+  doc.text("For support call:\n0745 862 002", 105, 285, { align:
+"center" });
 
   doc.save(`Receipt_EggMaster_${orderData.deliveryCode || "Order"}.pdf`);
 };
 
-
+window.ordersDataMap = {};
 
 // --- STYLED PHONE MODAL LOGIC ---
 
