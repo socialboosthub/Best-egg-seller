@@ -888,12 +888,13 @@ window.viewStatementPage = () => {
 
 
 
-// 2. Generates the Professional PDF with M-Pesa Codes included
+// 2. Generates the Professional PDF with 
 window.processAndHandlePDF = async (action) => {
+    // 1. SAFE SORTING: Matches your view statement page exactly
     const orders = Object.values(window.ordersDataMap || {}).sort((a, b) => {
-        const dateA = a.createdAt.seconds || a.createdAt;
-        const dateB = b.createdAt.seconds || b.createdAt;
-        return dateB - dateA;
+        const timeA = a.createdAt?.seconds || (a.createdAt ? new Date(a.createdAt).getTime() / 1000 : 0);
+        const timeB = b.createdAt?.seconds || (b.createdAt ? new Date(b.createdAt).getTime() / 1000 : 0);
+        return timeB - timeA;
     });
 
     if (orders.length === 0) return alert("⚠️ No order history found to export.");
@@ -924,15 +925,20 @@ window.processAndHandlePDF = async (action) => {
     
     doc.setFont("helvetica", "normal");
     doc.text(`Name: ${auth.currentUser.displayName || 'Customer'}`, 14, 56);
-    doc.text(`Phone: ${userPhone || 'N/A'}`, 14, 62);
+    // Safe phone check
+    doc.text(`Phone: ${typeof userPhone !== 'undefined' ? userPhone : 'N/A'}`, 14, 62);
 
     // --- Statement Summary ---
     doc.setFont("helvetica", "bold");
     doc.text("SUMMARY:", 140, 50);
     
     doc.setFont("helvetica", "normal");
+    
+    // 2. SAFE WALLET BALANCE: Prevents crash if userWalletBalance is undefined
+    const safeWalletBal = Number(typeof userWalletBalance !== 'undefined' ? userWalletBalance : 0) || 0;
+    
     doc.text(`Total Orders: ${orders.length}`, 140, 56);
-    doc.text(`Wallet Balance: Ksh ${userWalletBalance.toLocaleString()}`, 140, 62);
+    doc.text(`Wallet Balance: Ksh ${safeWalletBal.toLocaleString()}`, 140, 62);
     doc.text(`Generated: ${new Date().toLocaleDateString()}`, 140, 68);
 
     // --- The Table (Includes M-Pesa Code) ---
@@ -940,13 +946,26 @@ window.processAndHandlePDF = async (action) => {
         startY: 75,
         head: [['Date', 'Order Ref', 'M-Pesa Code', 'Quantity', 'Amount']],
         body: orders.map(o => {
-            const dateStr = o.createdAt.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString();
+            // 3. SAFE DATE PARSING
+            let dateStr = "Unknown Date";
+            if (o.createdAt) {
+                try {
+                    dateStr = o.createdAt.toDate ? o.createdAt.toDate().toLocaleDateString() : new Date(o.createdAt).toLocaleDateString();
+                } catch(err) {
+                    dateStr = "Invalid Date";
+                }
+            }
+
+            // 4. SAFE NUMBER PARSING: Prevents .toLocaleString() crashes
+            const safePrice = Number(o.totalPrice) || 0;
+            const safeQty = o.quantity || 0;
+
             return [
                 dateStr,
                 o.deliveryCode || "N/A",
                 o.mpesaCode || "WALLET",
-                `${o.quantity} Trays`,
-                `Ksh ${o.totalPrice.toLocaleString()}`
+                `${safeQty} Trays`,
+                `Ksh ${safePrice.toLocaleString()}`
             ];
         }),
         theme: 'grid',
