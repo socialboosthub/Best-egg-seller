@@ -28,11 +28,83 @@ let currentStock = 0;
 let userWalletBalance = 0;
 window.currentOrderState = null; 
 
-const MOMBASA_AREAS = [
-    "Nyali", "Bamburi", "Tudor", "Kizingo", "Mtwapa", "Likoni", 
-    "Changamwe", "Mikindani", "Ganjoni", "Mombasa Island", "Shanzu", "Mkomani",
-    "Bombolulu", "Kisauni", "Kongowea", "Mbaraki", "Mama Ngina"
-];
+const MOMBASA_LOCATIONS = {
+    
+    "Kisauni": [
+        "Bamburi Mwisho",
+        "Bamburi Frontline",
+        "Bamburi Master",
+        "Kiembeni",
+        "Mishomoroni",
+        "Shanzu",
+        "Bombolulu",
+        "Utange",
+        "Mtopanga",
+        "Barsheba",
+        "Junda",
+        "Vescon"
+    ],
+
+    "Nyali": [
+        "Old Nyali",
+        "New Nyali",
+        "Kongowea",
+        "Kisimani",
+        "V.O.K",
+        "Maweni",
+        "Mkomani",
+        "Kadzandani",
+        "Links Road"
+    ],
+
+    "Mvita": [
+        "Majengo",
+        "Tudor Mwisho",
+        "Tudor Four",
+        "Tudor Car Wash",
+        "Kizingo",
+        "Old Town",
+        "Ganjoni",
+        "Tononoka",
+        "Saba Saba",
+        "Shimanzi",
+        "Makadara",
+        "Digo Road",
+        "Mwembe Tayari"
+    ],
+
+    "Changamwe": [
+        "Magongo",
+        "Port Reitz",
+        "Chaani",
+        "Migadini",
+        "Bomu",
+        "Airport Area",
+        "Bangladesh",
+        "Kwa Hola"
+    ],
+
+    "Jomvu": [
+        "Mikindani",
+        "Miritini",
+        "Kwa Jomvu",
+        "Aldina",
+        "Jomvu Kuu",
+        "Bangladesh"
+    ],
+
+    "Likoni": [
+        "Ferry Area",
+        "Mtongwe",
+        "Shelly Beach",
+        "Shika Adabu",
+        "Ushindi",
+        "Majengo Mapya",
+        "Ujamaa",
+        "Timbwani",
+        "Caltex"
+    ]
+};
 
 const translations = {
     en: { heroTitle: "Bulk Fresh Eggs", navShop: "Shop", navSettings: "Settings", myOrders: "My Orders", setTheme: "Dark Mode", setLanguage: "Language", logout: "Logout", statOrders: "My Orders", prodTray: "Tray of 30", recentActivity: "Recent Activity" },
@@ -478,7 +550,7 @@ window.verifyPayment = async () => {
 function generateWhatsAppLink(qty, total, loc, code) {
     const btn = document.querySelector('.whatsapp-float');
     const msg = `Hi EggMaster, I ordered ${qty} Trays (Ksh ${total}). Loc: ${loc}. Code: ${code}`;
-    if(btn) btn.href = `https://wa.me/254700000000?text=${encodeURIComponent(msg)}`;
+    if(btn) btn.href = `https://wa.me/254745862002?text=${encodeURIComponent(msg)}`;
 }
 
 // --- PROFILE & SETTINGS ---
@@ -679,25 +751,110 @@ window.initLocationFlow = function() {
 
 window.openLocationSearch = () => {
     document.getElementById('location-modal').style.display = 'flex';
-    window.renderLocationList(MOMBASA_AREAS);
-};
 
-window.renderLocationList = (areas) => {
     const list = document.getElementById('locationList');
     list.innerHTML = '';
-    areas.forEach(area => {
-        const item = document.createElement('div');
-        item.className = 'location-item';
-        item.innerHTML = `<i class="fa-solid fa-map-pin"></i> ${area}, Mombasa`;
-        item.onclick = () => window.selectLocation(area + ", Mombasa");
-        list.appendChild(item);
+
+    Object.keys(MOMBASA_LOCATIONS).forEach(subCounty => {
+
+        const section = document.createElement('div');
+
+        section.innerHTML = `
+            <div style="
+                font-weight:bold;
+                padding:12px;
+                background:#FFB300;
+                color:#000;
+                border-radius:10px;
+                margin-top:10px;
+                margin-bottom:8px;
+            ">
+                ${subCounty} Sub-County
+            </div>
+        `;
+
+        MOMBASA_LOCATIONS[subCounty].forEach(area => {
+
+            const item = document.createElement('div');
+
+            item.className = 'location-item';
+
+            item.innerHTML = `
+                <i class="fa-solid fa-location-dot"></i>
+                ${area}, ${subCounty}
+            `;
+
+            item.onclick = () => {
+                window.selectLocation(`${area}, ${subCounty}, Mombasa`);
+            };
+
+            section.appendChild(item);
+        });
+
+        list.appendChild(section);
     });
 };
 
+
+
+
 window.filterLocations = () => {
-    const queryStr = document.getElementById('locSearch').value.toLowerCase();
-    const filtered = MOMBASA_AREAS.filter(a => a.toLowerCase().includes(queryStr));
-    window.renderLocationList(filtered);
+
+    const query = document
+        .getElementById('locSearch')
+        .value
+        .toLowerCase();
+
+    const list = document.getElementById('locationList');
+
+    list.innerHTML = '';
+
+    Object.keys(MOMBASA_LOCATIONS).forEach(subCounty => {
+
+        const filtered = MOMBASA_LOCATIONS[subCounty]
+            .filter(area =>
+                area.toLowerCase().includes(query)
+            );
+
+        if(filtered.length > 0){
+
+            const section = document.createElement('div');
+
+            section.innerHTML = `
+                <div style="
+                    font-weight:bold;
+                    padding:12px;
+                    background:#FFB300;
+                    color:#000;
+                    border-radius:10px;
+                    margin-top:10px;
+                    margin-bottom:8px;
+                ">
+                    ${subCounty} Sub-County
+                </div>
+            `;
+
+            filtered.forEach(area => {
+
+                const item = document.createElement('div');
+
+                item.className = 'location-item';
+
+                item.innerHTML = `
+                    <i class="fa-solid fa-location-dot"></i>
+                    ${area}, ${subCounty}
+                `;
+
+                item.onclick = () => {
+                    window.selectLocation(`${area}, ${subCounty}, Mombasa`);
+                };
+
+                section.appendChild(item);
+            });
+
+            list.appendChild(section);
+        }
+    });
 };
 
 window.selectLocation = (address) => {
