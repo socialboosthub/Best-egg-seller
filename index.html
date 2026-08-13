@@ -438,6 +438,11 @@
     </div>
   </div>
 
+  <div style="width:100%;max-width:960px;margin-top:10px;text-align:center;font-family:Arial,sans-serif;font-size:12px;color:#aaa;">
+    <b style="color:#fff;">LIVE RULES:</b>
+    Hit = 5 • Brutality = 50 • Follow = 1 • 100 Likes = 1 • First to 100 wins
+  </div>
+
   <div class="controls-panel" id="controls-panel">
     <div class="button-group">
       <button class="btn btn-girl-hit" onclick="attack('girl', false)">Girls Hit (5)</button>
@@ -452,9 +457,6 @@
       <button class="btn btn-util" onclick="resetMatch()">⚡ Reset Match</button>
       <button class="btn btn-util" onclick="resetScores()">🔄 Zero Scores</button>
       <button class="btn btn-util" onclick="toggleControls()">👁 Hide Controls (Press H)</button>
-      <div style="text-align:center; color:#888; font-family:Arial,sans-serif; font-size:12px; margin-top:2px;">
-        LIVE RULES: Gift hit = 5 • Big gift = 50 • Follow = 0.2 • Every 100 likes = 0.2
-      </div>
     </div>
   </div>
 
@@ -514,64 +516,79 @@
       }, 10);
     }
 
-    function attack(attacker, isBrutality, username = "Unknown", giftName = "", powerOverride = null) {
+    function attack(
+      attacker,
+      isBrutality,
+      username = "Unknown",
+      giftName = "",
+      customPower = null,
+      actionLabel = ""
+    ) {
       if (!isMatchActive) return;
 
-      // Gift hits: normal = 5, big = 50.
-      // Social actions (follow / 100 likes): 0.2 each.
+      // Scoring:
+      // normal hit/gift = 5
+      // brutality = 50
+      // follow = 1
+      // 100 likes = 1
+      const defaultPower = isBrutality ? 50 : 5;
+      const suppliedPower = Number(customPower);
+
       const powerPush =
-        powerOverride !== null
-          ? Number(powerOverride)
-          : (isBrutality ? 50 : 5); 
+        Number.isFinite(suppliedPower) && suppliedPower > 0
+          ? suppliedPower
+          : defaultPower;
+
+      const feedAction =
+        actionLabel ||
+        giftName ||
+        (isBrutality ? "Brutality" : "Hit");
 
       if (attacker === 'girl') {
         linePosition += powerPush;
-        addFeed(
-  'girl',
-  username,
-  giftName || (isBrutality ? "Rosa" : "Rose")
-);
+        addFeed('girl', username, feedAction);
         animateCharacter('girl');
       } else {
         linePosition -= powerPush;
-        addFeed(
-  'boy',
-  username,
-  giftName || (isBrutality ? "Mind Blown" : "TikTok")
-);
+        addFeed('boy', username, feedAction);
         animateCharacter('boy');
       }
 
       updateVisuals();
       triggerAnimation(isBrutality);
 
-      const announcement = document.getElementById("announcement-text");
+      const announcement =
+        document.getElementById("announcement-text");
 
       if (linePosition >= 100) {
         girlWins++;
         document.getElementById("girl-wins").innerText = girlWins;
-        isMatchActive = false; 
-        
-        announcement.className = "announcement annct-girls active";
-        announcement.innerText = "GIRLS WIN!";
-        
+        isMatchActive = false;
+
+        announcement.className =
+          "announcement annct-girls active";
+        announcement.innerText =
+          "GIRLS WIN!";
+
         setTimeout(() => {
           announcement.classList.remove("active");
           resetMatch();
-        }, 500); 
-      } 
+        }, 500);
+      }
       else if (linePosition <= 0) {
         boyWins++;
         document.getElementById("boy-wins").innerText = boyWins;
-        isMatchActive = false; 
-        
-        announcement.className = "announcement annct-boys active";
-        announcement.innerText = "BOYS WIN!";
-        
+        isMatchActive = false;
+
+        announcement.className =
+          "announcement annct-boys active";
+        announcement.innerText =
+          "BOYS WIN!";
+
         setTimeout(() => {
           announcement.classList.remove("active");
           resetMatch();
-        }, 500); 
+        }, 500);
       }
     }
 
