@@ -1,475 +1,673 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EggMaster Wholesale</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <style>
-        #stealth-admin-trigger {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 20px; height: 20px; background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%; z-index: 10000; cursor: pointer;
-        }
-        /* Trick to show Ksh 0 when JS hides the container */
-        #emptyWalletDisplay { display: none; }
-        #walletContainer[style*="none"] ~ #emptyWalletDisplay { display: block; }
-    </style>
-    <script type="module" src="script.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mortal Kombat - Gift Battle</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      font-family: 'Impact', 'Segoe UI', Arial, sans-serif;
+    }
+
+    body {
+      background-color: #08060c;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .secret-hint {
+      font-family: sans-serif;
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .secret-hint span {
+      background: #222;
+      color: #00ffcc;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    /* 16:9 Arena Container */
+    .arena-wrapper {
+      width: 100%;
+      max-width: 960px;
+      aspect-ratio: 16 / 9;
+      position: relative;
+      border: 3px solid #2a1f3d;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), 0 0 15px rgba(176, 38, 255, 0.3);
+      background: #000;
+    }
+
+    /* Hit & Brutality Animations */
+    .arena-hit {
+      animation: screenShake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    
+    .arena-brutality {
+      animation: brutalShake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+      filter: sepia(0.8) hue-rotate(-30deg) saturate(3) contrast(1.2);
+    }
+
+    @keyframes screenShake {
+      0% { transform: translate(0, 0); }
+      20% { transform: translate(-8px, 5px); }
+      40% { transform: translate(8px, -5px); }
+      60% { transform: translate(-4px, 2px); }
+      80% { transform: translate(4px, -2px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    @keyframes brutalShake {
+      0% { transform: translate(0, 0) scale(1); }
+      10% { transform: translate(-15px, 10px) scale(1.05); }
+      20% { transform: translate(15px, -10px) scale(1.05); }
+      30% { transform: translate(-15px, -10px) scale(1.05); }
+      40% { transform: translate(15px, 10px) scale(1.05); }
+      50% { transform: translate(-10px, 5px) scale(1.02); }
+      70% { transform: translate(10px, -5px) scale(1.01); }
+      100% { transform: translate(0, 0) scale(1); }
+    }
+
+    /* Dynamic Split Backgrounds */
+    .bg-split {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background-size: cover;
+      background-position: center;
+      transition: width 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .bg-girls {
+      left: 0;
+      width: 50%;
+      background-color: #4a1942;
+      background-image: url('girls.jpg');
+      border-right: 2px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 5px 0 20px rgba(176, 38, 255, 0.8);
+      z-index: 2;
+    }
+
+    .bg-boys {
+      right: 0;
+      width: 50%;
+      background-color: #193a4a;
+      background-image: url('boys.jpg');
+      border-left: 2px solid rgba(255, 255, 255, 0.8);
+      box-shadow: -5px 0 20px rgba(0, 210, 255, 0.8);
+      z-index: 1;
+    }
+
+    /* Moving Center Divider */
+    .center-divider {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 6px;
+      background: #ffffff;
+      transform: translateX(-50%);
+      box-shadow: 0 0 15px #fff, 0 0 30px #b026ff, 0 0 45px #00d2ff;
+      z-index: 5;
+      transition: left 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Top HUD Scoreboards */
+    .hud-top {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .team-score-box {
+      display: flex;
+      align-items: stretch;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
+      background: #111;
+    }
+
+    .score-number {
+      font-size: 32px;
+      color: #fff;
+      padding: 8px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 70px;
+    }
+
+    .team-name {
+      font-size: 28px;
+      color: #fff;
+      padding: 8px 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .team-girls .team-name { background: linear-gradient(135deg, #ff1e56, #d800ff); }
+    .team-boys .team-name { background: linear-gradient(135deg, #0066ff, #00d2ff); }
+
+    /* Moving Avatar Wrappers (Glued to center line) */
+    .avatar-wrapper {
+      position: absolute;
+      bottom: 15%;
+      height: 60%;
+      z-index: 6;
+      transition: left 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    
+    .avatar-wrapper-girl {
+      transform: translateX(-100%);
+      padding-right: 30px;
+    }
+
+    .avatar-wrapper-boy {
+      transform: translateX(0);
+      padding-left: 30px;
+    }
+
+    /* Actual Character Images */
+    .avatar {
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+      transition: transform 0.15s ease-out;
+    }
+
+    /* Win Announcement */
+    .announcement {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      font-size: 56px;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-align: center;
+      letter-spacing: 3px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      white-space: nowrap;
+    }
+
+    .announcement.active {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.1);
+    }
+
+    .annct-girls { color: #fff; text-shadow: 0 0 10px #d800ff, 0 0 20px #d800ff, 4px 4px 0px #000; }
+    .annct-boys { color: #fff; text-shadow: 0 0 10px #0066ff, 0 0 20px #0066ff, 4px 4px 0px #000; }
+
+    /* Action Feed Log Containers */
+    .action-feed {
+      position: absolute;
+      bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .action-feed-girls {
+      left: 15px;
+    }
+
+    .action-feed-boys {
+      right: 15px;
+    }
+
+    .feed-item {
+      background: rgba(0, 0, 0, 0.65);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      direction: ltr;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .feed-item-girl {
+      border-left: 3px solid #d800ff;
+    }
+
+    .feed-item-boy {
+      border-left: 3px solid #00d2ff;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Controls Panel */
+    .controls-panel {
+      width: 100%;
+      max-width: 960px;
+      margin-top: 15px;
+      background: #120e1a;
+      border: 1px solid #2e2440;
+      border-radius: 10px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .controls-panel.hidden { display: none !important; }
+    .button-group { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; letter-spacing: 1px; transition: all 0.15s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); }
+    .btn:active { transform: scale(0.95); }
+
+    .btn-girl-hit { background: #8a1ca6; color: #fff; }
+    .btn-girl-hit:hover { background: #a624c7; }
+    .btn-girl-brutal { background: linear-gradient(135deg, #d800ff, #6200ea); color: #fff; border: 1px solid #ff88ff; }
+    .btn-boy-hit { background: #005bb5; color: #fff; }
+    .btn-boy-hit:hover { background: #0066cc; }
+    .btn-boy-brutal { background: linear-gradient(135deg, #0066ff, #0022cc); color: #fff; border: 1px solid #44aaff; }
+    .btn-util { background: #251d33; color: #ccc; border: 1px solid #44355e; }
+    .btn-util:hover { background: #362a4a; color: #fff; }
+
+
+    /* Live Battle Position Scores */
+    .battle-scorebar {
+      width: 100%;
+      max-width: 960px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      gap: 0;
+      border: 2px solid #2e2440;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #0d0a13;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.45);
+      font-family: Impact, 'Segoe UI', Arial, sans-serif;
+    }
+
+    .battle-score-side {
+      flex: 1;
+      min-width: 0;
+      padding: 8px 14px;
+      text-align: center;
+      font-size: 15px;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .battle-score-side.girls {
+      background: linear-gradient(135deg, rgba(216,0,255,0.28), rgba(138,28,166,0.18));
+    }
+
+    .battle-score-side.boys {
+      background: linear-gradient(135deg, rgba(0,102,255,0.18), rgba(0,210,255,0.28));
+    }
+
+    .battle-score-number {
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 900;
+      display: block;
+      margin-top: 3px;
+    }
+
+    .battle-score-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      font-size: 16px;
+      font-weight: 900;
+      background: #111;
+    }
+
+    .secret-toggle-btn {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 100;
+    }
+    .secret-toggle-btn:hover { color: rgba(255, 255, 255, 0.8); }
+  </style>
 </head>
-<body class="not-logged-in">
-      <div id="custom-alert-modal" class="modal-overlay">
-    <div class="modal-content custom-alert-box">
-        <div id="custom-alert-icon"></div>
-        <h3 id="custom-alert-title">Notice</h3>
-        <p id="custom-alert-msg"></p>
-        
-        <div id="alert-actions-single">
-            <button class="save-btn alert-btn" onclick="document.getElementById('custom-alert-modal').style.display='none'">Got it</button>
-        </div>
+<body>
 
-        <div id="alert-actions-choice" style="display: none; gap: 10px;">
-            <button id="alert-cancel-btn" class="cancel-btn alert-btn" style="flex: 1; background: #eee; color: #333;">List</button>
-            <button id="alert-confirm-btn" class="save-btn alert-btn" style="flex: 1;">Use GPS</button>
-        </div>
+  <!-- Preload character images -->
+  <div style="display: none;">
+    <img src="kitana_idle.png"><img src="kitana_attack.png">
+    <img src="mileena_idle.png"><img src="mileena_attack.png">
+    <img src="jade_idle.png"><img src="jade_attack.png">
+    <img src="subzero_idle.png"><img src="subzero_attack.png">
+    <img src="scorpion_idle.png"><img src="scorpion_attack.png">
+    <img src="liukang_idle.png"><img src="liukang_attack.png">
+  </div>
+
+  <div class="secret-hint">
+    Streamer Mode Active: Press <span>H</span> key on your keyboard to <b>Hide / Show</b> controls completely!
+  </div>
+
+  <div class="arena-wrapper" id="arena">
+    <div class="bg-split bg-girls" id="bg-girls"></div>
+    <div class="bg-split bg-boys" id="bg-boys"></div>
+    <div class="center-divider" id="center-line"></div>
+
+    <div class="hud-top">
+      <div class="team-score-box team-girls">
+        <span class="score-number" id="girl-wins">0</span>
+        <span class="team-name" id="girl-name-label">KITANA</span>
+      </div>
+
+      <div class="team-score-box team-boys">
+        <span class="team-name" id="boy-name-label">SUB-ZERO</span>
+        <span class="score-number" id="boy-wins">0</span>
+      </div>
     </div>
-</div>
 
+    <!-- Avatars wrapped in containers -->
+    <div class="avatar-wrapper avatar-wrapper-girl" id="wrap-girl">
+      <img src="kitana_idle.png" alt="Girl Fighter" class="avatar" id="avatar-girl">
+    </div>
 
+    <div class="avatar-wrapper avatar-wrapper-boy" id="wrap-boy">
+      <img src="subzero_idle.png" alt="Boy Fighter" class="avatar" id="avatar-boy">
+    </div>
 
-
+    <div class="announcement" id="announcement-text"></div>
     
-    <div id="login-overlay" class="login-screen">
-        <div class="login-blobs">
-            <div class="blob blob-1"></div>
-            <div class="blob blob-2"></div>
-        </div>
-        <div class="login-content">
-            <div class="logo-anim">
-                <i class="fa-solid fa-egg"></i>
-                <div class="yolk-glow"></div>
-            </div>
-            <h1>EggMaster<span class="dot">.</span></h1>
-            <p>Wholesale Supply (Min 30 Trays)</p>
-            <div class="login-actions">
-                <button id="google-login-btn" class="google-btn">
-                    <i class="fa-brands fa-google"></i> Login with Google
-                </button>
-            </div>
-            <div id="stealth-admin-trigger" onclick="window.location.href='admin.html'"></div>
-        </div>
+    <!-- Action feeds for both sides -->
+    <div class="action-feed action-feed-girls" id="feed-girls"></div>
+    <div class="action-feed action-feed-boys" id="feed-boys"></div>
+
+    <button class="secret-toggle-btn" onclick="toggleControls()" title="Toggle Settings Controls">⚙</button>
+  </div>
+
+
+  <!-- Live battle position score: total is always 100 -->
+  <div class="battle-scorebar" id="battle-scorebar">
+    <div class="battle-score-side girls">
+      GIRLS
+      <span class="battle-score-number" id="girl-battle-score">50</span>
+    </div>
+    <div class="battle-score-center">VS</div>
+    <div class="battle-score-side boys">
+      BOYS
+      <span class="battle-score-number" id="boy-battle-score">50</span>
+    </div>
+  </div>
+
+  <div class="controls-panel" id="controls-panel">
+    <div class="button-group">
+      <button class="btn btn-girl-hit" onclick="attack('girl', false)">Girls Hit (5)</button>
+      <button class="btn btn-girl-brutal" onclick="attack('girl', true)">BRUTALITY! (50)</button>
+      <button class="btn btn-boy-hit" onclick="attack('boy', false)">Boys Hit (5)</button>
+      <button class="btn btn-boy-brutal" onclick="attack('boy', true)">BRUTALITY! (50)</button>
     </div>
 
-    <div id="mpesa-modal" class="modal-overlay">
-    <div class="modal-content" style="max-width: 350px;">
-        <h3 style="margin-bottom: 10px;">Confirm Payments</h3>
-        
-        <div class="payment-summary" style="background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #eee;">
-            <p style="font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">Order Summary</p>
-            <div class="pay-row"><span>Number of Trays:</span> <strong id="summaryQty">30</strong></div>
-            <div class="pay-row"><span>Price per Tray:</span> <strong>Ksh <span id="summaryUnitPrice">400</span></strong></div>
-            <div id="summaryWalletRow" class="pay-row wallet-deduction" style="display:none;"><span>Wallet Discount:</span> <strong>-Ksh <span id="summaryWallet">0</span></strong></div>
-            <div class="pay-row total"><span>Total Amount:</span> <strong style="color: #D32F2F;">Ksh <span id="summaryTotal">12,000</span></strong></div>
-        </div>
-
-        <div style="background: #FFF8E1; border: 1px dashed #FFB300; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-            <p style="font-weight: bold; color: #FF8F00; margin-bottom: 10px;"><i class="fa-solid fa-circle-info"></i> How To Pay</p>
-            <p style="font-size: 12px; margin-bottom: 8px;">1. Open M-PESA > Withdraw Cash > From Agent</p>
-            
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 8px;">
-                <span style="font-size: 13px;">Agent No: <strong>7172200</strong></span>
-                <button onclick="window.copyToClipboard('7172200', this)" style="background: #FFB300; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer;">COPY</button>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 8px;">
-                <span style="font-size: 13px;">Store No: <strong>386997</strong></span>
-                <button onclick="window.copyToClipboard('386997', this)" style="background: #FFB300; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer;">COPY</button>
-            </div>
-
-            <p style="font-size: 13px;">Enter amount: <strong id="amountToPayInstruction">Ksh 12,000</strong></p>
-        </div>
-
-        <div class="input-group">
-            <label style="font-weight: bold;">Validate Payment</label>
-            <input type="text" id="mpesaCodeInput" placeholder="ENTER TRANSACTION CODE" style="text-transform:uppercase; text-align:center; font-weight:bold; letter-spacing: 2px;">
-            <small style="color: #666; font-size: 10px;">Enter the code (e.g. SBM8...) received in your SMS.</small>
-        </div>
-
-        <button id="payBtn" class="save-btn" style="width:100%; background:#4CAF50; color:white; padding: 15px; font-size: 16px; border-radius: 50px;" onclick="window.verifyPaytext"bl)">
-            Verify Payment
-        </button>
-        <button class="cancel-btn" style="width:100%; margin-top:10px; border: none; background: transparent; color: #F44336;" onclick="document.getElementById('mpesa-modal').style.display='none'">Cancel</button>
+    <div class="button-group">
+      <button class="btn btn-util" onclick="switchCharacter('girl')">⚡ Switch Girl</button>
+      <button class="btn btn-util" onclick="switchCharacter('boy')">⚡ Switch Boy</button>
+      <button class="btn btn-util" onclick="resetMatch()">⚡ Reset Match</button>
+      <button class="btn btn-util" onclick="resetScores()">🔄 Zero Scores</button>
+      <button class="btn btn-util" onclick="toggleControls()">👁 Hide Controls (Press H)</button>
+      <div style="text-align:center; color:#888; font-family:Arial,sans-serif; font-size:12px; margin-top:2px;">
+        LIVE RULES: Gift hit = 5 • Big gift = 50 • Follow = 0.2 • Every 100 likes = 0.2
+      </div>
     </div>
-    </div>
+  </div>
 
-    
-       <div id="topup-modal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 350px;">
-            <h3 style="margin-bottom: 10px;">Top Up Wallet</h3>
-            
-            <div style="background: #E8F5E9; border: 1px dashed #4CAF50; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                <p style="font-weight: bold; color: #2E7D32; margin-bottom: 10px;"><i class="fa-solid fa-wallet"></i> How To Top Up</p>
-                <p style="font-size: 12px; margin-bottom: 8px;">Send any amount via M-PESA to our agent:</p>
-                
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 8px;">
-                    <span style="font-size: 13px;">Agent No: <strong>7172200</strong></span>
-                    <button onclick="window.copyToClipboard('7172200', this)" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer;">COPY</button>
-                </div>
-                
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 8px;">
-                    <span style="font-size: 13px;">Store No: <strong>386997</strong></span>
-                    <button onclick="window.copyToClipboard('386997', this)" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer;">COPY</button>
-                </div>
-            </div>
+  <script>
+    let linePosition = 50; 
+    let girlWins = 0;
+    let boyWins = 0;
+    let isMatchActive = true; 
 
-            <div class="input-group">
-                <label style="font-weight: bold;">Enter M-Pesa Code</label>
-                <input type="text" id="topupCodeInput" placeholder="ENTER TRANSACTION CODE" style="text-transform:uppercase; text-align:center; font-weight:bold; letter-spacing: 2px;">
-                <small style="color: #666; font-size: 10px;">Enter the code (e.g. SBM8...) you received.</small>
-            </div>
+    const girlCharacters = [
+      { name: "KITANA", idle: "kitana_idle.png", attack: "kitana_attack.png" },
+      { name: "MILEENA", idle: "mileena_idle.png", attack: "mileena_attack.png" },
+      { name: "JADE", idle: "jade_idle.png", attack: "jade_attack.png" }
+    ];
 
-            <button id="topupBtn" class="save-btn" style="width:100%; background:#4CAF50; color:white; padding: 15px; font-size: 16px; border-radius: 50px;" onclick="window.processTopUp()">
-                Verify & Add Funds
-            </button>
-            <button class="cancel-btn" style="width:100%; margin-top:10px; border: none; background: transparent; color: #F44336;" onclick="document.getElementById('topup-modal').style.display='none'">Cancel</button>
-        </div>
-    </div>
+    const boyCharacters = [
+      { name: "SUB-ZERO", idle: "subzero_idle.png", attack: "subzero_attack.png" },
+      { name: "SCORPION", idle: "scorpion_idle.png", attack: "scorpion_attack.png" },
+      { name: "LIU KANG", idle: "liukang_idle.png", attack: "liukang_attack.png" }
+    ];
 
+    let currentGirlIndex = 0;
+    let currentBoyIndex = 0;
 
-    
+    function updateVisuals() {
+      let displayPosition = linePosition;
+      if (displayPosition > 100) displayPosition = 100;
+      if (displayPosition < 0) displayPosition = 0;
 
-        <div id="profile-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>Edit Profile</h3>
-            
-            <div class="input-group">
-                <label>Profile ID (Unique)</label>
-                <input type="text" id="editIdInput" readonly style="background-color: #f0f0f0; color: #888; cursor: not-allowed;" title="Your unique account ID cannot be changed.">
-            </div>
+      document.getElementById("bg-girls").style.width = displayPosition + "%";
+      document.getElementById("bg-boys").style.width = (100 - displayPosition) + "%";
+      document.getElementById("center-line").style.left = displayPosition + "%";
 
-            <div class="input-group">
-                <label>Full Name</label>
-                <input type="text" id="editNameInput" placeholder="Enter your name">
-            </div>
+      document.getElementById("wrap-girl").style.left = displayPosition + "%";
+      document.getElementById("wrap-boy").style.left = displayPosition + "%";
 
-            <div class="input-group">
-                <label>Phone Number</label>
-                <input type="tel" id="editPhoneInput" placeholder="e.g., 0712345678" maxlength="10">
-                <small style="color: #D32F2F; font-size: 11px; font-weight: 600; display: block; margin-top: 5px;">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Warning: Please use your active WhatsApp/Call number. This is used for your deliveries!
-                </small>
-            </div>
-            
-            <div class="modal-actions">
-                <button class="cancel-btn" onclick="window.closeProfileModal()">Cancel</button>
-                <button id="saveProfileBtn" class="save-btn" onclick="window.saveProfile()">Save Changes</button>
-            </div>
-        </div>
-    </div>
+      // Live battle score. Total is always 100:
+      // center = 50 / 50
+      // line moves toward boys = girls gain points
+      // line moves toward girls = boys gain points
+      const girlBattleScore = Math.round(displayPosition);
+      const boyBattleScore = 100 - girlBattleScore;
 
-    
-
-    <div id="location-modal" class="modal-overlay">
-        <div class="modal-content location-content">
-            <h3>Select Delivery Location</h3>
-            <p style="font-size:12px; color:#666; margin-bottom:15px;">We deliver within Mombasa County.</p>
-            <div class="search-bar">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="locSearch" placeholder="Search area..." onkeyup="window.filterLocations()">
-            </div>
-            <div id="locationList" class="location-list"></div>
-            <button class="cancel-btn" style="width:100%; margin-top:10px;" onclick="document.getElementById('location-modal').style.display='none'">Close</button>
-        </div>
-    </div>
-
-    <header class="top-bar">
-        <div class="user-info">
-            <small id="welcome-text">Good Morning,</small>
-            <h3 id="usernameDisplay">Egg Wholesaler</h3>
-        </div>
-        <div class="header-actions">
-            <div class="icon-btn" onclick="window.showPage('notifications-page', null)">
-                <i class="fa-regular fa-bell"></i>
-                <div id="notifBadge" class="dot-badge" style="display:none;"></div>
-            </div>
-            <div class="profile-pic">
-                <img src="https://ui-avatars.com/api/?name=User&background=FFB300&color=fff" id="userPhoto" alt="User">
-            </div>
-        </div>
-    </header>
-
-    <section id="home" class="page active">
-        <div class="hero-card">
-            <div class="hero-text">
-                <span class="tag">Wholesale Only</span>
-                <h2 data-i18n="heroTitle">Bulk Fresh Eggs</h2>
-                <button id="heroOrderBtn">Order Now <i class="fa-solid fa-arrow-right"></i></button>
-            </div>
-            <div class="hero-img">🐓</div>
-        </div>
-
-        <div class="wallet-card-home" onclick="window.openTopUpModal()" style="cursor: pointer; display: flex; flex-direction: column;">
-            <div class="wallet-label">My Wallet Balance</div>
-            
-            <div id="walletContainer" style="display: none; flex-direction: column;">
-                <div class="wallet-amount" id="walletDisplay">Ksh 0</div>
-            </div>
-            <div class="wallet-amount" id="emptyWalletDisplay">Ksh 0</div>
-            
-            <div style="margin-top: 5px;">
-                <span class="wallet-note"><i class="fa-solid fa-plus"></i> Tap to Top Up</span>
-            </div>
-        </div>
-
-        <div class="stats-row">
-            <div class="stat-card highlight">
-                <i class="fa-solid fa-basket-shopping"></i>
-                <div>
-                    <b id="homeOrderCount">0</b>
-                    <span data-i18n="statOrders">My Orders</span>
-                </div>
-            </div>
-        </div>
-        <div class="section-header">
-            <h3 data-i18n="recentActivity">Recent Activity</h3>
-        </div>
-        <div class="mini-order" id="homeRecentCard">
-            <div class="icon-box"><i class="fa-solid fa-clock"></i></div>
-            <div class="details">
-                <h4 id="recentItemName">No orders yet</h4>
-                <small id="recentStatusText">Start shopping today!</small>
-            </div>
-            <span class="price" id="recentPrice">--</span>
-        </div>
-    </section>
-
-    <section id="shop" class="page">
-        <h2 class="page-title" data-i18n="navShop">Wholesale Shop</h2>
-        <div class="product-grid" style="grid-template-columns: 1fr;"> 
-            <div class="product-card">
-                <div class="prod-img-wrapper"><div class="prod-emoji">🥚</div></div>
-                <div class="prod-details">
-                    <h3 data-i18n="prodTray">Tray of 30</h3>
-                    <div class="prod-desc">Fresh Kienyeji Eggs (Yellow Yolk)</div>
-                    <div class="price-row"><span>Ksh</span> <span id="dynamicPriceDisplay">...</span> <small style="font-size:12px; color:#666; font-weight:400">per tray</small></div>
-                   <div id="stockDisplay" style="font-size: 13px; font-weight: 600; margin-bottom: 15px; color: #666;">Loading Stock...</div>
-                    <div class="warning-box" style="background:#fff3cd; color:#856404; padding:8px; border-radius:8px; font-size:11px; margin-bottom:10px;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Minimum Order: 30 Trays
-                    </div>
-                    <div class="action-row">
-                        <div class="qty-control">
-                            <button onclick="updateQty(-1)">-</button>
-                            <span class="qty-display" id="shopQty">30</span>
-                            <button onclick="updateQty(1)">+</button>
-                        </div>
-                        <button class="add-btn" onclick="window.initiateOrder()">
-                            <i class="fa-solid fa-cart-plus"></i> Buy Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="orders" class="page">
-        <h2 class="page-title" data-i18n="myOrders">My Orders</h2>
-        <div id="ordersList" class="orders-list"></div>
-    </section>
-       <section id="statements" class="page">
-        <div style="padding: 15px 24px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 10;">
-            <i class="fa-solid fa-arrow-left" onclick="window.showPage('settings', document.querySelectorAll('.nav-item')[3])" style="font-size: 20px; cursor: pointer; color: #333;"></i>
-            <h2 style="margin: 0; font-size: 18px;">Account Statement</h2>
-        </div>
-
-        <div class="statement-dashboard" style="display: flex; gap: 10px; padding: 20px 24px;">
-            <div class="summary-box" style="flex: 1; background: #f9f9f9; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #eee;">
-                <small style="color: #666; font-size: 12px;">Total Orders</small>
-                <div class="amount" id="statTotalOrders" style="font-size: 20px; font-weight: bold; color: #333; margin-top: 5px;">0</div>
-            </div>
-            <div class="summary-box" style="flex: 1; background: #FFF8E1; padding: 15px; border-radius: 12px; text-align: center; border: 1px dashed #FFB300;">
-                <small style="color: #FF8F00; font-size: 12px;">Wallet Balance</small>
-                <div class="amount" id="statWalletBal" style="font-size: 20px; font-weight: bold; color: #333; margin-top: 5px;">Ksh 0</div>
-            </div>
-        </div>
-
-        <div class="statement-container" style="padding: 0 24px 20px 24px; overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-                <thead>
-                    <tr class="statement-header-row">
-                        <th style="padding: 10px;">Date</th>
-                        <th style="padding: 10px;">M-Pesa Code</th>
-                        <th style="padding: 10px;">Qty</th>
-                        <th style="padding: 10px;">Amount</th>
-                    </tr>
-                </thead>
-                <tbody id="statementTableBody">
-                    </tbody>
-            </table>
-        </div>
-
-        <div class="statement-actions" style="display: flex; gap: 10px; padding: 0 24px 30px 24px;">
-            <button class="save-btn" style="flex: 3; background: #FFB300; color: #000; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="window.processAndHandlePDF('download')">
-                <i class="fa-solid fa-file-pdf"></i> Export PDF
-            </button>
-            <button style="flex: 1; background: #333; color: #fff; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;" onclick="window.processAndHandlePDF('share')">
-                <i class="fa-solid fa-share-nodes"></i> Share
-            </button>
-        </div>
-    </section>
-
-    <section id="notifications-page" class="page">
-        <h2 class="page-title">Notifications</h2>
-        <div id="fullNotifList" class="notif-page-list">
-            <p class="empty-msg">Loading notifications...</p>
-        </div>
-    </section>
-
-    <section id="settings" class="page">
-        <div class="setting-item clickable" onclick="window.viewStatementPage()">
-    <div class="icon-wrap color-blue"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-    <div class="text">Account Statement</div>
-    <i class="fa-solid fa-chevron-right arrow"></i>
-</div>
-
-        <h2 class="page-title" data-i18n="navSettings">Settings</h2>
-        <div class="settings-section">
-            <div class="settings-header">Account</div>
-            
-            <div class="setting-item clickable" onclick="window.openProfileModal()">
-                <div class="icon-wrap color-blue"><i class="fa-solid fa-user-pen"></i></div>
-                <div class="text">Edit Profile</div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </div>
-            
-            <div class="setting-item clickable" onclick="window.initLocationFlow()">
-                <div class="icon-wrap color-green"><i class="fa-solid fa-location-dot"></i></div>
-                <div class="text">
-                    <div id="locationStatus">Delivery Address</div>
-                    <small id="currentCoords">Tap to set location</small>
-                </div>
-                <i class="fa-solid fa-chevron-right arrow"></i>
-            </div>
-
-<div id="statements" class="page">
-    <div class="official-header" style="margin: 20px 24px;">
-        <h2>Account Statement</h2>
-        <small>Official Transaction Record</small>
-    </div>
-
-    <div class="statement-dashboard">
-        <div class="summary-box">
-            <small>Total Orders</small>
-            <div class="amount" id="statTotalOrders">0</div>
-        </div>
-        <div class="summary-box">
-            <small>Wallet Balance</small>
-            <div class="amount" id="statWalletBal">Ksh 0</div>
-        </div>
-    </div>
-
-    <div class="statement-container">
-        <table class="statement-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Code</th>
-                    <th>Qty</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody id="statementTableBody">
-                </tbody>
-        </table>
-    </div>
-
-    <div class="statement-actions">
-        <button class="btn-export-pdf" onclick="processAndHandlePDF(window.ordersDataMap, 'download')">
-            <i class="fa-solid fa-file-pdf"></i> Download PDF
-        </button>
-        <button class="btn-share-statement" onclick="processAndHandlePDF(window.ordersDataMap, 'share')">
-            <i class="fa-solid fa-share-nodes"></i>
-        </button>
-    </div>
-</div>
-
-
-        </div>
-        <div class="settings-section">
-            <div class="settings-header">App Preferences</div>
-            <div class="setting-item">
-                <div class="icon-wrap color-orange"><i class="fa-solid fa-moon"></i></div>
-                <div class="text" data-i18n="setTheme">Dark Mode</div>
-                <label class="switch">
-                    <input type="checkbox" id="themeToggle" onchange="window.toggleTheme()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="setting-item">
-                <div class="icon-wrap color-teal"><i class="fa-solid fa-globe"></i></div>
-                <div class="text" data-i18n="setLanguage">Language</div>
-                <select id="langSelect" onchange="window.changeLanguage(this.value)" class="minimal-select">
-                    <option value="en">English</option>
-                    <option value="sw">Kiswahili</option>
-                </select>
-            </div>
-        </div>
-        <button class="logout-btn" onclick="window.logoutUser()" data-i18n="logout" style="width: calc(100% - 48px); margin: 24px; padding: 15px; border-radius: 12px; border: none; background: #FFEBEE; color: #F44336; font-weight: 700;">Logout</button>
-    </section>
-
-    <a href="https://wa.me/254745862002" target="_blank" class="whatsapp-float">
-        <i class="fa-brands fa-whatsapp"></i>
-    </a>
-
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="window.showPage('home', this)"><i class="fa-solid fa-house"></i></div>
-        <div class="nav-item" onclick="window.showPage('shop', this)"><i class="fa-solid fa-bag-shopping"></i></div>
-        <div class="nav-item" onclick="window.showPage('orders', this)"><i class="fa-solid fa-receipt"></i></div>
-        <div class="nav-item" onclick="window.showPage('settings', this)"><i class="fa-solid fa-sliders"></i></div>
-    </nav>
-<div id="phone-modal" class="custom-modal">
-    <div class="phone-modal-container"> <div class="modal-header">
-            <i class="fa-solid fa-triangle-exclamation" style="color: #ffb300; font-size: 24px;"></i>
-            <h3 class="phone-modal-title">Phone Number Required!</h3>
-        </div>
-        <p class="phone-modal-text">Please enter your phone number (e.g., 0712345678) so we can contact you for delivery:</p>
-        <input type="tel" id="phone-input" placeholder="07XXXXXXXX" maxlength="10">
-        <div class="modal-actions">
-            <button onclick="closePhoneModal()" class="btn-cancel">Cancel</button>
-            <button onclick="submitPhoneNumber()" class="btn-ok">OK</button>
-        </div>
-    </div>
-</div>
-
-
-    <script>
-    function showPhoneModal() {
-        document.getElementById('phone-modal').style.display = 'flex';
+      document.getElementById("girl-battle-score").innerText = girlBattleScore;
+      document.getElementById("boy-battle-score").innerText = boyBattleScore;
     }
 
-    function closePhoneModal() {
-        document.getElementById('phone-modal').style.display = 'none';
-    }
-
-    function submitPhoneNumber() {
-        const phone = document.getElementById('phone-input').value;
-        if (phone) {
-            // Your logic for eyesonreality.store
-            console.log("Phone saved:", phone);
-            closePhoneModal();
+    function triggerAnimation(isBrutality) {
+      const arena = document.getElementById("arena");
+      arena.classList.remove("arena-hit", "arena-brutality");
+      setTimeout(() => {
+        if (isBrutality) {
+          arena.classList.add("arena-brutality");
         } else {
-            alert("Please enter a valid number");
+          arena.classList.add("arena-hit");
         }
+      }, 10);
     }
-    </script>
 
-    <div id="pdfNotif" class="pdf-notif">
-    <div id="pdfNotifText"></div>
-    <div id="pdfNotifActions"></div>
-    </div>
+    function attack(attacker, isBrutality, username = "Unknown", giftName = "", powerOverride = null) {
+      if (!isMatchActive) return;
 
+      // Gift hits: normal = 5, big = 50.
+      // Social actions (follow / 100 likes): 0.2 each.
+      const powerPush =
+        powerOverride !== null
+          ? Number(powerOverride)
+          : (isBrutality ? 50 : 5); 
+
+      if (attacker === 'girl') {
+        linePosition += powerPush;
+        addFeed(
+  'girl',
+  username,
+  giftName || (isBrutality ? "Rosa" : "Rose")
+);
+        animateCharacter('girl');
+      } else {
+        linePosition -= powerPush;
+        addFeed(
+  'boy',
+  username,
+  giftName || (isBrutality ? "Mind Blown" : "TikTok")
+);
+        animateCharacter('boy');
+      }
+
+      updateVisuals();
+      triggerAnimation(isBrutality);
+
+      const announcement = document.getElementById("announcement-text");
+
+      if (linePosition >= 100) {
+        girlWins++;
+        document.getElementById("girl-wins").innerText = girlWins;
+        isMatchActive = false; 
+        
+        announcement.className = "announcement annct-girls active";
+        announcement.innerText = "GIRLS WIN!";
+        
+        setTimeout(() => {
+          announcement.classList.remove("active");
+          resetMatch();
+        }, 500); 
+      } 
+      else if (linePosition <= 0) {
+        boyWins++;
+        document.getElementById("boy-wins").innerText = boyWins;
+        isMatchActive = false; 
+        
+        announcement.className = "announcement annct-boys active";
+        announcement.innerText = "BOYS WIN!";
+        
+        setTimeout(() => {
+          announcement.classList.remove("active");
+          resetMatch();
+        }, 500); 
+      }
+    }
+
+    function animateCharacter(fighter) {
+      const isGirl = (fighter === 'girl');
+      const imgEl = document.getElementById(isGirl ? 'avatar-girl' : 'avatar-boy');
+      const charData = isGirl ? girlCharacters[currentGirlIndex] : boyCharacters[currentBoyIndex];
+      
+      imgEl.src = charData.attack;
+      imgEl.style.transform = isGirl ? "scale(1.1) translateX(15px)" : "scale(1.1) translateX(-15px)";
+
+      setTimeout(() => {
+        imgEl.src = charData.idle;
+        imgEl.style.transform = "scale(1) translateX(0)";
+      }, 600);
+    }
+
+    function switchCharacter(side, username = "@Admin", giftName = null) {
+  if (side === 'girl') {
+
+    currentGirlIndex =
+      (currentGirlIndex + 1) % girlCharacters.length;
+
+    const char = girlCharacters[currentGirlIndex];
+
+    document.getElementById("girl-name-label").innerText = char.name;
+    document.getElementById("avatar-girl").src = char.idle;
+
+    addFeed(
+      'girl',
+      username,
+      giftName || "Like-Pop"
+    );
+
+  } else {
+
+    currentBoyIndex =
+      (currentBoyIndex + 1) % boyCharacters.length;
+
+    const char = boyCharacters[currentBoyIndex];
+
+    document.getElementById("boy-name-label").innerText = char.name;
+    document.getElementById("avatar-boy").src = char.idle;
+
+    addFeed(
+      'boy',
+      username,
+      giftName || "Paper Crane"
+    );
+  }
+    }
+
+    function addFeed(side, user, gift) {
+      const feed = document.getElementById(side === 'girl' ? "feed-girls" : "feed-boys");
+      const item = document.createElement("div");
+      
+      const sideClass = side === 'girl' ? 'feed-item-girl' : 'feed-item-boy';
+      const nameColor = side === 'girl' ? '#e855ff' : '#00d2ff';
+      
+      item.className = `feed-item ${sideClass}`;
+      item.innerHTML = `<span style="color:${nameColor}; font-weight:bold;">${user}</span> sent <span>${gift}</span>`;
+      
+      feed.appendChild(item);
+      if (feed.children.length > 3) feed.removeChild(feed.children[0]);
+    }
+
+    function resetMatch() {
+      linePosition = 50;
+      isMatchActive = true; 
+      updateVisuals();
+    }
+
+    function resetScores() {
+      resetMatch();
+      girlWins = 0;
+      boyWins = 0;
+      document.getElementById("girl-wins").innerText = "0";
+      document.getElementById("boy-wins").innerText = "0";
+    }
+
+    function toggleControls() {
+      const panel = document.getElementById("controls-panel");
+      panel.classList.toggle("hidden");
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === "h") toggleControls();
+    });
+
+    updateVisuals();
+  </script>
+
+
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script src="tiktok-client.js"></script>
+  
 </body>
-            </html>
+</html>
+

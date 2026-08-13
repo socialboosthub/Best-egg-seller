@@ -1,18 +1,15 @@
 {
-  "name": "egg-shop",
+  "name": "tiktok-mortal-kombat-live",
   "version": "1.0.0",
-  "description": "Egg Shop Frontend",
+  "description": "TikTok LIVE gift controlled Mortal Kombat battle",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "firebase-admin": "^11.5.0",
-    "cors": "^2.8.5",
-    "body-parser": "^1.20.2"
-  },
-  "engines": {
-    "node": ">=14.x"
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1",
+    "piratetok-live-js": "latest"
   }
 }
